@@ -4,8 +4,10 @@ import WeddingTop from "@/components/wedding/WeddingTop";
 import WeddingMiddle from "@/components/wedding/WeddingMiddle";
 import WeddingBottom from "@/components/wedding/WeddingBottom";
 import Icon from "@/components/ui/icon";
+import { useWedding } from "@/context/WeddingContext";
 
 export default function Index() {
+  const { data } = useWedding();
   const [navOpen, setNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("hero");
   const [tmpl, setTmpl] = useState(TEMPLATES[0]);
@@ -26,7 +28,7 @@ export default function Index() {
   const [showMusicBanner, setShowMusicBanner] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const wedding = new Date("2026-09-12T14:00:00");
+  const wedding = new Date(data.weddingDate);
 
   // Countdown
   useEffect(() => {
@@ -40,31 +42,48 @@ export default function Index() {
       });
     }, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [data.weddingDate]);
+
+  // Update audio src when custom track changes
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    const wasPl = !audio.paused;
+    if (data.audioUrl) {
+      audio.src = data.audioUrl;
+    } else {
+      audio.src = "";
+    }
+    if (wasPl && data.audioUrl) audio.play().catch(() => {});
+  }, [data.audioUrl]);
 
   // Audio setup — tries autoplay, shows banner if blocked
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.loop = true;
-      audioRef.current.volume = volume / 100;
-    }
-    const audio = audioRef.current;
+    const audio = new Audio();
+    audio.loop = true;
+    audio.volume = volume / 100;
+    if (data.audioUrl) audio.src = data.audioUrl;
+    audioRef.current = audio;
 
     const tryAutoplay = async () => {
+      if (!audio.src) {
+        setShowMusicBanner(false);
+        return;
+      }
       try {
         await audio.play();
         setPlaying(true);
         setMusicUnlocked(true);
       } catch {
-        // Autoplay blocked — show banner asking user to enable
         setShowMusicBanner(true);
       }
     };
 
-    // Delay to not fight with page load
     const timer = setTimeout(tryAutoplay, 1500);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      audio.pause();
+    };
   }, []);
 
   // Sync volume
@@ -82,16 +101,20 @@ export default function Index() {
     }
   }, [playing, musicUnlocked]);
 
-  // Unlock on first user interaction (mobile)
   const handleUnlockMusic = () => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !audio.src) return;
     audio.play().then(() => {
       setPlaying(true);
       setMusicUnlocked(true);
       setShowMusicBanner(false);
     }).catch(() => {});
   };
+
+  // Track name to show in player
+  const currentTrackLabel = data.audioUrl
+    ? (data.audioName || "Ваш трек")
+    : TRACKS[currentTrack].title;
 
   const go = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -104,52 +127,38 @@ export default function Index() {
       <Petals />
 
       {/* Music unlock banner */}
-      {showMusicBanner && !musicUnlocked && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-up">
-          <div className="bg-[#3D2B1F] text-white px-5 py-3.5 rounded-sm shadow-2xl flex items-center gap-4 font-montserrat text-sm">
+      {showMusicBanner && !musicUnlocked && data.audioUrl && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-up w-[calc(100%-2rem)] max-w-sm">
+          <div className="bg-[#3D2B1F] text-white px-5 py-3.5 rounded-sm shadow-2xl flex items-center gap-3 font-montserrat">
             <Icon name="Music" size={16} className="text-[#B8976A] shrink-0" />
-            <span className="text-xs tracking-wide">Включить музыкальное сопровождение?</span>
+            <span className="text-xs tracking-wide flex-1">Включить музыкальное сопровождение?</span>
             <button
               onClick={handleUnlockMusic}
-              className="bg-[#B8976A] hover:bg-[#C9897A] text-white text-[10px] tracking-widest uppercase px-4 py-2 rounded-sm transition-colors whitespace-nowrap"
+              className="bg-[#B8976A] hover:bg-[#C9897A] text-white text-[10px] tracking-widest uppercase px-4 py-2 rounded-sm transition-colors whitespace-nowrap shrink-0"
             >
               Включить
             </button>
-            <button onClick={() => setShowMusicBanner(false)} className="text-white/40 hover:text-white transition-colors">
+            <button onClick={() => setShowMusicBanner(false)} className="text-white/40 hover:text-white transition-colors shrink-0">
               <Icon name="X" size={14} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Floating music player */}
-      {musicUnlocked && (
+      {/* Floating music player — only if audio is loaded */}
+      {musicUnlocked && data.audioUrl && (
         <div className="fixed bottom-5 right-5 z-40">
           <div className="bg-[#3D2B1F]/95 backdrop-blur-sm rounded-sm border border-white/10 px-4 py-3 flex items-center gap-3 shadow-2xl">
             <div className="flex flex-col min-w-0">
               <span className="text-[10px] text-white/40 font-montserrat uppercase tracking-widest">Сейчас играет</span>
-              <span className="text-xs text-white/80 font-montserrat truncate max-w-[140px]">{TRACKS[currentTrack].title}</span>
+              <span className="text-xs text-white/80 font-montserrat truncate max-w-[140px]">{currentTrackLabel}</span>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => setCurrentTrack((currentTrack - 1 + TRACKS.length) % TRACKS.length)}
-                className="text-white/40 hover:text-white transition-colors"
-              >
-                <Icon name="SkipBack" size={14} />
-              </button>
-              <button
-                onClick={() => setPlaying(!playing)}
-                className="w-8 h-8 rounded-full bg-[#B8976A] hover:bg-[#C9897A] flex items-center justify-center transition-colors"
-              >
-                <Icon name={playing ? "Pause" : "Play"} size={14} className="text-white" />
-              </button>
-              <button
-                onClick={() => setCurrentTrack((currentTrack + 1) % TRACKS.length)}
-                className="text-white/40 hover:text-white transition-colors"
-              >
-                <Icon name="SkipForward" size={14} />
-              </button>
-            </div>
+            <button
+              onClick={() => setPlaying(!playing)}
+              className="w-8 h-8 rounded-full bg-[#B8976A] hover:bg-[#C9897A] flex items-center justify-center transition-colors shrink-0"
+            >
+              <Icon name={playing ? "Pause" : "Play"} size={14} className="text-white" />
+            </button>
             {playing && (
               <div className="flex gap-0.5 items-end h-4 shrink-0">
                 {[2, 4, 3, 5, 2].map((h, j) => (

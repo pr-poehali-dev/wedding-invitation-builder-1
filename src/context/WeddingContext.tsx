@@ -23,6 +23,8 @@ export interface WeddingData {
   timelineTexts: string[];
   timelineYears: string[];
   galleryPhotos: string[];
+  audioUrl: string;
+  audioName: string;
 }
 
 const DEFAULTS: WeddingData = {
@@ -49,6 +51,8 @@ const DEFAULTS: WeddingData = {
   ],
   timelineYears: ["2019", "2020", "2022", "2026"],
   galleryPhotos: [],
+  audioUrl: "",
+  audioName: "",
 };
 
 const STORAGE_KEY = "wedding_site_data";

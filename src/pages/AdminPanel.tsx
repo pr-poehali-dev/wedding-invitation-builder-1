@@ -6,7 +6,7 @@ import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 const AUTH_KEY = "wedding_admin_auth";
 
-type Tab = "general" | "story" | "details" | "contacts" | "invite" | "photos" | "rsvp_answers";
+type Tab = "general" | "story" | "details" | "contacts" | "invite" | "photos" | "music" | "rsvp_answers";
 
 const RSVP_KEY = "wedding_rsvp_list";
 const SURVEY_KEY = "wedding_survey_list";
@@ -20,6 +20,10 @@ export default function AdminPanel() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const [audioUploading, setAudioUploading] = useState(false);
+  const [audioError, setAudioError] = useState("");
+  const [audioProgress, setAudioProgress] = useState(0);
   const [rsvpList] = useState<Array<{ name: string; email: string; status: string }>>(() => {
     try { return JSON.parse(localStorage.getItem(RSVP_KEY) || "[]"); } catch { return []; }
   });
@@ -79,6 +83,54 @@ export default function AdminPanel() {
     reader.readAsDataURL(file);
   };
 
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      setAudioError("Файл слишком большой. Максимум 20 МБ.");
+      return;
+    }
+    setAudioUploading(true);
+    setAudioError("");
+    setAudioProgress(0);
+    const reader = new FileReader();
+    reader.onprogress = (ev) => {
+      if (ev.lengthComputable) setAudioProgress(Math.round((ev.loaded / ev.total) * 60));
+    };
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      setAudioProgress(70);
+      try {
+        const res = await fetch("https://functions.poehali.dev/18daacfc-1a6d-4c48-a94b-c95011bcd933", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ audio: base64, contentType: file.type, filename: file.name }),
+        });
+        const json = await res.json();
+        setAudioProgress(100);
+        if (json.url) {
+          const updated = { ...form, audioUrl: json.url, audioName: file.name };
+          setForm(updated);
+          setData(updated);
+        } else {
+          setAudioError("Ошибка загрузки. Попробуйте ещё раз.");
+        }
+      } catch {
+        setAudioError("Ошибка сети. Проверьте соединение.");
+      } finally {
+        setAudioUploading(false);
+        if (audioInputRef.current) audioInputRef.current.value = "";
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAudio = () => {
+    const updated = { ...form, audioUrl: "", audioName: "" };
+    setForm(updated);
+    setData(updated);
+  };
+
   const handleDeletePhoto = (idx: number) => {
     const updated = { ...form, galleryPhotos: form.galleryPhotos.filter((_, i) => i !== idx) };
     setForm(updated);
@@ -101,6 +153,7 @@ export default function AdminPanel() {
     { id: "contacts", label: "Контакты", icon: "Phone" },
     { id: "invite", label: "Приглашение", icon: "FileText" },
     { id: "photos", label: "Фото", icon: "Image" },
+    { id: "music", label: "Музыка", icon: "Music" },
     { id: "rsvp_answers", label: "Ответы гостей", icon: "Users" },
   ];
 
@@ -388,6 +441,93 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {/* MUSIC */}
+          {tab === "music" && (
+            <div className="space-y-6">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Фоновая музыка</h2>
+              <p className="text-xs text-[#9B8878] font-montserrat leading-relaxed">
+                Загрузите MP3-файл — он будет автоматически играть фоном при открытии сайта.
+                Максимальный размер: 20 МБ.
+              </p>
+
+              {/* Current track */}
+              {form.audioUrl ? (
+                <div className="bg-[#3D2B1F] rounded-sm p-5 flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-full bg-[#B8976A]/20 flex items-center justify-center shrink-0">
+                    <Icon name="Music2" size={18} className="text-[#B8976A]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase mb-0.5">Текущий трек</p>
+                    <p className="text-sm text-white font-montserrat truncate">{form.audioName || "Загруженный трек"}</p>
+                    <audio controls src={form.audioUrl} className="mt-2 w-full h-8 opacity-70" />
+                  </div>
+                  <button
+                    onClick={handleRemoveAudio}
+                    className="shrink-0 w-8 h-8 rounded-full bg-red-500/20 hover:bg-red-500/40 text-red-400 flex items-center justify-center transition-colors"
+                    title="Удалить"
+                  >
+                    <Icon name="Trash2" size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-white border border-[#E8D5BE] rounded-sm p-5 text-center">
+                  <Icon name="MusicOff" size={22} className="text-[#9B8878] mx-auto mb-2" />
+                  <p className="text-sm text-[#9B8878] font-montserrat">Своя музыка не загружена</p>
+                  <p className="text-xs text-[#B8976A] font-montserrat mt-1">Играют стандартные треки плеера</p>
+                </div>
+              )}
+
+              {/* Upload area */}
+              <div
+                onClick={() => !audioUploading && audioInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-sm p-10 text-center transition-colors ${audioUploading ? "border-[#B8976A] cursor-default" : "border-[#E8D5BE] cursor-pointer hover:border-[#B8976A]"} group`}
+              >
+                <input
+                  ref={audioInputRef}
+                  type="file"
+                  accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/aac"
+                  className="hidden"
+                  onChange={handleAudioUpload}
+                />
+                {audioUploading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-2 border-[#B8976A]/30 border-t-[#B8976A] rounded-full animate-spin" />
+                    <p className="text-sm text-[#9B8878] font-montserrat">Загружаем трек...</p>
+                    <div className="w-48 h-1.5 bg-[#E8D5BE] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#B8976A] rounded-full transition-all duration-300"
+                        style={{ width: `${audioProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-[#B8976A] font-montserrat">{audioProgress}%</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#E8C4B0]/30 flex items-center justify-center group-hover:bg-[#E8C4B0]/50 transition-colors">
+                      <Icon name="Upload" size={20} className="text-[#B8976A]" />
+                    </div>
+                    <p className="text-sm text-[#4A4035] font-montserrat">
+                      {form.audioUrl ? "Заменить трек" : "Нажмите, чтобы загрузить MP3"}
+                    </p>
+                    <p className="text-xs text-[#9B8878] font-montserrat">MP3, WAV, OGG, AAC до 20 МБ</p>
+                  </div>
+                )}
+              </div>
+
+              {audioError && (
+                <div className="flex items-center gap-2 text-red-500 text-xs font-montserrat bg-red-50 border border-red-200 px-3 py-2 rounded-sm">
+                  <Icon name="AlertCircle" size={13} />
+                  {audioError}
+                </div>
+              )}
+
+              <div className="bg-[#F5F0E8] border border-[#E8D5BE] rounded-sm p-4 text-xs text-[#9B8878] font-montserrat space-y-1.5">
+                <p className="flex items-center gap-2"><Icon name="Info" size={12} className="text-[#B8976A] shrink-0" /> На десктопе музыка включается автоматически при открытии сайта.</p>
+                <p className="flex items-center gap-2"><Icon name="Smartphone" size={12} className="text-[#B8976A] shrink-0" /> На мобильных браузер спрашивает разрешение — гость нажмет «Включить».</p>
+              </div>
+            </div>
+          )}
+
           {/* RSVP ANSWERS */}
           {tab === "rsvp_answers" && (
             <div className="space-y-6">
@@ -449,7 +589,7 @@ export default function AdminPanel() {
           )}
 
           {/* Save button */}
-          {tab !== "rsvp_answers" && tab !== "photos" && (
+          {tab !== "rsvp_answers" && tab !== "photos" && tab !== "music" && (
             <div className="mt-8 flex items-center gap-4">
               <button onClick={handleSave}
                 className="px-8 py-3 bg-[#3D2B1F] text-[#FAF7F2] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#4A4035] transition-colors rounded-sm flex items-center gap-2">
