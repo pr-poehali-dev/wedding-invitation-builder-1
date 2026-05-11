@@ -193,6 +193,9 @@ export default function Index() {
         volume={volume} setVolume={setVolume}
         currentTrack={currentTrack} setCurrentTrack={setCurrentTrack}
         lightbox={lightbox} setLightbox={setLightbox}
+        audioRef={audioRef}
+        onUnlock={handleUnlockMusic}
+        musicUnlocked={musicUnlocked}
       />
     </div>
   );

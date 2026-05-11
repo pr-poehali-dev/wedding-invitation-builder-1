@@ -11,11 +11,15 @@ interface WeddingBottomProps {
   setCurrentTrack: (v: number) => void;
   lightbox: string | null;
   setLightbox: (v: string | null) => void;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  onUnlock: () => void;
+  musicUnlocked: boolean;
 }
 
 export default function WeddingBottom({
   playing, setPlaying, volume, setVolume,
   currentTrack, setCurrentTrack, lightbox, setLightbox,
+  audioRef, onUnlock, musicUnlocked,
 }: WeddingBottomProps) {
   const { data } = useWedding();
 
@@ -65,56 +69,78 @@ export default function WeddingBottom({
             </div>
           </Fade>
           <Fade delay={100}>
-            <div className="rounded-sm border border-white/10 p-8 bg-[#4A4035]/50">
-              <div className="flex items-center gap-4 mb-7">
-                <div className="w-16 h-16 rounded-sm bg-[#B8976A]/20 flex items-center justify-center shrink-0">
-                  <Icon name="Music" size={22} className="text-[#B8976A]" />
-                </div>
-                <div>
-                  <p className="font-cormorant text-xl text-white">{TRACKS[currentTrack].title}</p>
-                  <p className="text-xs text-white/40 font-montserrat mt-0.5">{TRACKS[currentTrack].sub}</p>
-                </div>
-              </div>
-              <input type="range" className="progress-bar mb-1" defaultValue={30} />
-              <div className="flex justify-between text-[10px] text-white/35 font-montserrat mb-6"><span>1:24</span><span>4:23</span></div>
-              <div className="flex items-center justify-center gap-7 mb-6">
-                <button onClick={() => setCurrentTrack((currentTrack - 1 + TRACKS.length) % TRACKS.length)} className="text-white/35 hover:text-white transition-colors">
-                  <Icon name="SkipBack" size={20} />
-                </button>
-                <button onClick={() => setPlaying(!playing)}
-                  className="w-12 h-12 rounded-full bg-[#B8976A] flex items-center justify-center hover:bg-[#C9897A] transition-colors">
-                  <Icon name={playing ? "Pause" : "Play"} size={20} className="text-white" />
-                </button>
-                <button onClick={() => setCurrentTrack((currentTrack + 1) % TRACKS.length)} className="text-white/35 hover:text-white transition-colors">
-                  <Icon name="SkipForward" size={20} />
-                </button>
-              </div>
-              <div className="flex items-center gap-3">
-                <Icon name="Volume2" size={14} className="text-white/35" />
-                <input type="range" className="progress-bar flex-1" value={volume} onChange={(e) => setVolume(+e.target.value)} />
-                <span className="text-[10px] text-white/35 font-montserrat w-5">{volume}</span>
-              </div>
-            </div>
-            <div className="mt-3 space-y-1">
-              {TRACKS.map((t, i) => (
-                <button key={t.title} onClick={() => setCurrentTrack(i)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-sm border transition-all ${currentTrack === i ? "border-[#B8976A]/40 bg-white/5" : "border-white/5 hover:border-white/15"}`}>
-                  <span className="text-xs text-white/25 font-montserrat w-4">{i + 1}</span>
-                  <Icon name="Music2" size={13} className="text-[#B8976A]/60" />
-                  <div className="flex-1 text-left">
-                    <p className="text-sm text-white/75 font-montserrat">{t.title}</p>
-                    <p className="text-xs text-white/30 font-montserrat">{t.sub}</p>
-                  </div>
-                  {currentTrack === i && (
-                    <div className="flex gap-0.5 items-end h-4">
-                      {[3, 5, 2, 6, 4].map((h, j) => (
-                        <div key={j} className="w-0.5 bg-[#B8976A] rounded animate-bounce" style={{ height: `${h * 3}px`, animationDelay: `${j * 0.1}s` }} />
-                      ))}
+            {data.audioUrl ? (
+              <>
+                <div className="rounded-sm border border-white/10 p-8 bg-[#4A4035]/50">
+                  <div className="flex items-center gap-4 mb-7">
+                    <div className="w-16 h-16 rounded-sm bg-[#B8976A]/20 flex items-center justify-center shrink-0">
+                      <Icon name="Music" size={22} className="text-[#B8976A]" />
                     </div>
-                  )}
-                </button>
-              ))}
-            </div>
+                    <div>
+                      <p className="font-cormorant text-xl text-white">{data.audioName || "Ваш трек"}</p>
+                      <p className="text-xs text-white/40 font-montserrat mt-0.5">Музыкальное сопровождение</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-7 mb-6">
+                    <button
+                      onClick={() => {
+                        if (!musicUnlocked) { onUnlock(); return; }
+                        setPlaying(!playing);
+                      }}
+                      className="w-14 h-14 rounded-full bg-[#B8976A] flex items-center justify-center hover:bg-[#C9897A] transition-colors">
+                      <Icon name={playing ? "Pause" : "Play"} size={22} className="text-white" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Icon name="Volume2" size={14} className="text-white/35" />
+                    <input type="range" className="progress-bar flex-1" value={volume} onChange={(e) => setVolume(+e.target.value)} />
+                    <span className="text-[10px] text-white/35 font-montserrat w-5">{volume}</span>
+                  </div>
+                </div>
+                {playing && (
+                  <div className="flex gap-1 items-end justify-center h-8 mt-6">
+                    {[3, 5, 2, 7, 4, 6, 3].map((h, j) => (
+                      <div key={j} className="w-1 bg-[#B8976A] rounded animate-bounce" style={{ height: `${h * 4}px`, animationDelay: `${j * 0.1}s` }} />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="rounded-sm border border-white/10 p-8 bg-[#4A4035]/50">
+                  <div className="flex items-center gap-4 mb-7">
+                    <div className="w-16 h-16 rounded-sm bg-[#B8976A]/20 flex items-center justify-center shrink-0">
+                      <Icon name="Music" size={22} className="text-[#B8976A]" />
+                    </div>
+                    <div>
+                      <p className="font-cormorant text-xl text-white">{TRACKS[currentTrack].title}</p>
+                      <p className="text-xs text-white/40 font-montserrat mt-0.5">{TRACKS[currentTrack].sub}</p>
+                    </div>
+                  </div>
+                  <p className="text-center text-xs text-white/35 font-montserrat mb-6 leading-relaxed">
+                    Загрузите свой трек в панели управления<br />раздел «Музыка»
+                  </p>
+                  <div className="flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center opacity-40 cursor-not-allowed">
+                      <Icon name="Play" size={22} className="text-white" />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  {TRACKS.map((t, i) => (
+                    <button key={t.title} onClick={() => setCurrentTrack(i)}
+                      className={`w-full flex items-center gap-4 p-4 rounded-sm border transition-all ${currentTrack === i ? "border-[#B8976A]/40 bg-white/5" : "border-white/5 hover:border-white/15"}`}>
+                      <span className="text-xs text-white/25 font-montserrat w-4">{i + 1}</span>
+                      <Icon name="Music2" size={13} className="text-[#B8976A]/60" />
+                      <div className="flex-1 text-left">
+                        <p className="text-sm text-white/75 font-montserrat">{t.title}</p>
+                        <p className="text-xs text-white/30 font-montserrat">{t.sub}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </Fade>
         </div>
       </section>
