@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
-import { HERO_IMAGE, TIMELINE, NAV_ITEMS, Fade, SectionTitle } from "./wedding-shared";
+import { HERO_IMAGE, NAV_ITEMS, Fade, SectionTitle } from "./wedding-shared";
+import { useWedding } from "@/context/WeddingContext";
 
 interface WeddingTopProps {
   navOpen: boolean;
@@ -10,13 +11,25 @@ interface WeddingTopProps {
 }
 
 export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: WeddingTopProps) {
+  const { data } = useWedding();
+
+  const weddingDateLabel = new Date(data.weddingDate).toLocaleDateString("ru-RU", {
+    day: "numeric", month: "long", year: "numeric",
+  });
+
+  const timeline = data.timelineTitles.map((title, i) => ({
+    year: data.timelineYears[i] ?? "",
+    title,
+    text: data.timelineTexts[i] ?? "",
+  }));
+
   return (
     <>
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FAF7F2]/90 backdrop-blur-sm border-b border-[#E8C4B0]/30">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <button onClick={() => go("hero")} className="font-cormorant text-xl tracking-widest text-[#3D2B1F] font-light">
-            А & М
+            {data.groomName[0]} & {data.brideName[0]}
           </button>
           <button className="md:hidden" onClick={() => setNavOpen(!navOpen)}>
             <Icon name={navOpen ? "X" : "Menu"} size={20} className="text-[#4A4035]" />
@@ -53,18 +66,20 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
             Вы приглашены
           </p>
           <h1 className="font-cormorant text-6xl md:text-8xl font-light text-white leading-none mb-2 animate-fade-up" style={{ animationDelay: "0.6s", animationFillMode: "both" }}>
-            Александр
+            {data.groomName}
           </h1>
           <p className="font-cormorant text-4xl md:text-5xl italic text-[#E8C4B0] mb-2 animate-fade-up" style={{ animationDelay: "0.8s", animationFillMode: "both" }}>
             &amp;
           </p>
           <h1 className="font-cormorant text-6xl md:text-8xl font-light text-white leading-none animate-fade-up" style={{ animationDelay: "1s", animationFillMode: "both" }}>
-            Мария
+            {data.brideName}
           </h1>
           <div className="animate-fade-up" style={{ animationDelay: "1.2s", animationFillMode: "both" }}>
             <div className="w-48 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto my-7" />
-            <p className="font-cormorant text-xl text-white/80 italic tracking-wider">12 сентября 2026 года</p>
-            <p className="text-[10px] tracking-[0.35em] text-white/55 font-montserrat uppercase mt-1">Усадьба «Белые Берёзы» · Москва</p>
+            <p className="font-cormorant text-xl text-white/80 italic tracking-wider">{weddingDateLabel}</p>
+            <p className="text-[10px] tracking-[0.35em] text-white/55 font-montserrat uppercase mt-1">
+              {data.venueName} · {data.venueAddress}
+            </p>
           </div>
           <div className="mt-10 grid grid-cols-4 gap-3 max-w-xs mx-auto animate-fade-up" style={{ animationDelay: "1.4s", animationFillMode: "both" }}>
             {[{ v: cd.d, l: "дней" }, { v: cd.h, l: "часов" }, { v: cd.m, l: "минут" }, { v: cd.s, l: "секунд" }].map((c) => (
@@ -92,8 +107,8 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
           <Fade><SectionTitle title="Наша история" sub="Как всё началось" /></Fade>
           <div className="relative">
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#B8976A]/40 to-transparent hidden md:block" />
-            {TIMELINE.map((item, i) => (
-              <Fade key={item.year} delay={i * 120}>
+            {timeline.map((item, i) => (
+              <Fade key={item.year + i} delay={i * 120}>
                 <div className={`flex items-start gap-8 mb-12 ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
                   <div className={`flex-1 ${i % 2 === 0 ? "md:text-right" : "md:text-left"}`}>
                     <span className="text-[10px] tracking-[0.35em] text-[#B8976A] font-montserrat uppercase">{item.year}</span>
@@ -115,9 +130,18 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
           <Fade><SectionTitle title="Детали события" sub="Что нужно знать" /></Fade>
           <div className="grid md:grid-cols-3 gap-7">
             {[
-              { icon: "Calendar", title: "Дата", lines: ["12 сентября 2026", "Суббота", "Начало в 14:00"] },
-              { icon: "MapPin", title: "Место", lines: ["Усадьба «Белые Берёзы»", "Рублёво-Успенское ш., 42", "Московская область"] },
-              { icon: "Clock", title: "Программа", lines: ["14:00 — Церемония", "15:30 — Банкет", "23:00 — Окончание"] },
+              {
+                icon: "Calendar", title: "Дата",
+                lines: [weddingDateLabel, new Date(data.weddingDate).toLocaleDateString("ru-RU", { weekday: "long" }), `Начало в ${data.weddingTime}`],
+              },
+              {
+                icon: "MapPin", title: "Место",
+                lines: [data.venueName, data.venueAddress, "Московская область"],
+              },
+              {
+                icon: "Clock", title: "Программа",
+                lines: [`${data.weddingTime} — Церемония`, "15:30 — Банкет", "23:00 — Окончание"],
+              },
             ].map((c, i) => (
               <Fade key={c.title} delay={i * 100}>
                 <div className="bg-white border border-[#E8D5BE] p-8 text-center shadow-sm rounded-sm" style={{ boxShadow: "0 4px 40px rgba(61,43,31,0.06)" }}>
@@ -126,7 +150,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
                   </div>
                   <h3 className="font-cormorant text-2xl font-medium text-[#3D2B1F] mb-3">{c.title}</h3>
                   <div className="w-10 h-px bg-[#B8976A]/50 mx-auto mb-4" />
-                  {c.lines.map((l) => <p key={l} className="text-sm text-[#9B8878] font-montserrat leading-loose">{l}</p>)}
+                  {c.lines.map((l) => <p key={l} className="text-sm text-[#9B8878] font-montserrat leading-loose capitalize">{l}</p>)}
                 </div>
               </Fade>
             ))}
@@ -134,10 +158,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
           <Fade delay={250}>
             <div className="mt-9 bg-white border border-[#E8D5BE] p-8 text-center max-w-xl mx-auto rounded-sm" style={{ boxShadow: "0 4px 40px rgba(61,43,31,0.06)" }}>
               <p className="text-[10px] tracking-[0.35em] text-[#B8976A] font-montserrat uppercase mb-2">Дресс-код</p>
-              <h3 className="font-cormorant text-2xl font-medium text-[#3D2B1F] mb-3">Торжественный</h3>
-              <p className="text-sm text-[#9B8878] font-montserrat leading-relaxed">
-                Пожалуйста, воздержитесь от белого. Приветствуются пастельные, нежные оттенки.
-              </p>
+              <p className="text-sm text-[#9B8878] font-montserrat leading-relaxed">{data.dressCode}</p>
               <div className="flex gap-2 justify-center mt-5">
                 {["#FAF7F2","#E8C4B0","#C9897A","#B8976A","#7A9B6E","#9B8878"].map(c => (
                   <div key={c} className="w-6 h-6 rounded-full border border-[#E8D5BE]" style={{ backgroundColor: c }} />

@@ -1,0 +1,362 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Icon from "@/components/ui/icon";
+import { useWedding, WeddingData } from "@/context/WeddingContext";
+import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
+
+const AUTH_KEY = "wedding_admin_auth";
+
+type Tab = "general" | "story" | "details" | "contacts" | "invite" | "rsvp_answers";
+
+const RSVP_KEY = "wedding_rsvp_list";
+const SURVEY_KEY = "wedding_survey_list";
+
+export default function AdminPanel() {
+  const navigate = useNavigate();
+  const { data, setData } = useWedding();
+  const [tab, setTab] = useState<Tab>("general");
+  const [form, setForm] = useState<WeddingData>({ ...data });
+  const [saved, setSaved] = useState(false);
+  const [rsvpList] = useState<Array<{ name: string; email: string; status: string }>>(() => {
+    try { return JSON.parse(localStorage.getItem(RSVP_KEY) || "[]"); } catch { return []; }
+  });
+  const [surveyList] = useState<Array<Record<string, string>>>(() => {
+    try { return JSON.parse(localStorage.getItem(SURVEY_KEY) || "[]"); } catch { return []; }
+  });
+
+  useEffect(() => {
+    if (localStorage.getItem(AUTH_KEY) !== "true") {
+      navigate("/admin");
+    }
+  }, [navigate]);
+
+  const logout = () => {
+    localStorage.removeItem(AUTH_KEY);
+    navigate("/admin");
+  };
+
+  const handleSave = () => {
+    setData(form);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const set = (key: keyof WeddingData, value: string) =>
+    setForm((f) => ({ ...f, [key]: value }));
+
+  const setTimelineField = (field: "timelineTitles" | "timelineTexts" | "timelineYears", idx: number, value: string) => {
+    const arr = [...form[field]];
+    arr[idx] = value;
+    setForm((f) => ({ ...f, [field]: arr }));
+  };
+
+  const inputCls = "w-full px-3 py-2.5 border border-[#E8D5BE] bg-white text-sm text-[#4A4035] font-montserrat focus:outline-none focus:border-[#B8976A] rounded-sm transition-colors";
+  const labelCls = "block text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase mb-1.5";
+
+  const tabs: { id: Tab; label: string; icon: string }[] = [
+    { id: "general", label: "Общее", icon: "Settings" },
+    { id: "story", label: "История", icon: "BookOpen" },
+    { id: "details", label: "Детали", icon: "Calendar" },
+    { id: "contacts", label: "Контакты", icon: "Phone" },
+    { id: "invite", label: "Приглашение", icon: "FileText" },
+    { id: "rsvp_answers", label: "Ответы гостей", icon: "Users" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#FAF7F2]">
+      {/* Header */}
+      <header className="bg-[#3D2B1F] text-[#FAF7F2] px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <Icon name="Crown" size={18} className="text-[#B8976A]" />
+          <span className="font-cormorant text-xl tracking-wider">Панель управления</span>
+          <span className="hidden md:inline text-[10px] tracking-widest text-[#B8976A] font-montserrat uppercase ml-2">— А & М</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate("/")}
+            className="text-xs text-[#9B8878] hover:text-[#FAF7F2] font-montserrat transition-colors flex items-center gap-1.5">
+            <Icon name="Eye" size={14} />
+            <span className="hidden sm:inline">Просмотр сайта</span>
+          </button>
+          <button onClick={logout}
+            className="text-xs text-[#9B8878] hover:text-[#FAF7F2] font-montserrat transition-colors flex items-center gap-1.5">
+            <Icon name="LogOut" size={14} />
+            <span className="hidden sm:inline">Выйти</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="flex min-h-[calc(100vh-60px)]">
+        {/* Sidebar */}
+        <aside className="w-52 shrink-0 bg-white border-r border-[#E8D5BE] hidden md:block">
+          <nav className="py-4">
+            {tabs.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-montserrat transition-colors text-left ${
+                  tab === t.id
+                    ? "bg-[#FAF7F2] text-[#3D2B1F] border-r-2 border-[#B8976A]"
+                    : "text-[#9B8878] hover:text-[#3D2B1F] hover:bg-[#FAF7F2]/50"
+                }`}>
+                <Icon name={t.icon as "Settings"} size={15} className={tab === t.id ? "text-[#B8976A]" : "text-[#9B8878]"} />
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Mobile tabs */}
+        <div className="md:hidden w-full absolute">
+          <div className="flex overflow-x-auto bg-white border-b border-[#E8D5BE] px-2">
+            {tabs.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`shrink-0 px-4 py-3 text-xs font-montserrat border-b-2 transition-colors ${
+                  tab === t.id ? "border-[#B8976A] text-[#3D2B1F]" : "border-transparent text-[#9B8878]"
+                }`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <main className="flex-1 p-6 md:pt-6 pt-14 max-w-2xl">
+
+          {/* GENERAL */}
+          {tab === "general" && (
+            <div className="space-y-6">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Общая информация</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Имя жениха</label>
+                  <input className={inputCls} value={form.groomName} onChange={(e) => set("groomName", e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelCls}>Имя невесты</label>
+                  <input className={inputCls} value={form.brideName} onChange={(e) => set("brideName", e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>Дата свадьбы</label>
+                  <input type="date" className={inputCls} value={form.weddingDate.slice(0, 10)}
+                    onChange={(e) => set("weddingDate", e.target.value + "T" + form.weddingTime + ":00")} />
+                </div>
+                <div>
+                  <label className={labelCls}>Время</label>
+                  <input type="time" className={inputCls} value={form.weddingTime}
+                    onChange={(e) => set("weddingTime", e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>Название площадки</label>
+                <input className={inputCls} value={form.venueName} onChange={(e) => set("venueName", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Адрес</label>
+                <input className={inputCls} value={form.venueAddress} onChange={(e) => set("venueAddress", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Дресс-код</label>
+                <textarea rows={3} className={inputCls + " resize-none"} value={form.dressCode}
+                  onChange={(e) => set("dressCode", e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          {/* STORY */}
+          {tab === "story" && (
+            <div className="space-y-6">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Наша история</h2>
+              {form.timelineTitles.map((_, i) => (
+                <div key={i} className="bg-white border border-[#E8D5BE] p-5 rounded-sm space-y-3"
+                  style={{ boxShadow: "0 2px 20px rgba(61,43,31,0.04)" }}>
+                  <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase">Событие {i + 1}</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className={labelCls}>Год</label>
+                      <input className={inputCls} value={form.timelineYears[i]}
+                        onChange={(e) => setTimelineField("timelineYears", i, e.target.value)} />
+                    </div>
+                    <div className="col-span-2">
+                      <label className={labelCls}>Название</label>
+                      <input className={inputCls} value={form.timelineTitles[i]}
+                        onChange={(e) => setTimelineField("timelineTitles", i, e.target.value)} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Описание</label>
+                    <textarea rows={2} className={inputCls + " resize-none"} value={form.timelineTexts[i]}
+                      onChange={(e) => setTimelineField("timelineTexts", i, e.target.value)} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* DETAILS */}
+          {tab === "details" && (
+            <div className="space-y-6">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Детали события</h2>
+              <p className="text-xs text-[#9B8878] font-montserrat">Информация берётся из раздела «Общее». Здесь можно настроить шаблон и шрифт.</p>
+
+              <div>
+                <label className={labelCls}>Шаблон приглашения</label>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  {TEMPLATES.map((t) => (
+                    <button key={t.id} onClick={() => set("tmplId", t.id)}
+                      className={`p-4 rounded-sm border-2 transition-all ${t.bg} ${form.tmplId === t.id ? "border-[#B8976A]" : "border-[#E8D5BE] hover:border-[#B8976A]/50"}`}>
+                      <span className={`font-cormorant text-lg ${t.accent}`}>{t.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className={labelCls}>Шрифт</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {FONTS.map((f) => (
+                    <button key={f.id} onClick={() => set("fontId", f.id)}
+                      className={`px-4 py-2 border text-sm transition-all rounded-sm ${f.cls} ${form.fontId === f.id ? "border-[#B8976A] bg-[#B8976A]/10 text-[#3D2B1F]" : "border-[#E8D5BE] text-[#9B8878] hover:border-[#B8976A]"}`}>
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* CONTACTS */}
+          {tab === "contacts" && (
+            <div className="space-y-5">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Контакты</h2>
+              <div>
+                <label className={labelCls}>Телефон жениха</label>
+                <input className={inputCls} value={form.contactGroom} onChange={(e) => set("contactGroom", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Телефон невесты</label>
+                <input className={inputCls} value={form.contactBride} onChange={(e) => set("contactBride", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Телефон ведущего</label>
+                <input className={inputCls} value={form.contactHost} onChange={(e) => set("contactHost", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelCls}>Email</label>
+                <input type="email" className={inputCls} value={form.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          {/* INVITE */}
+          {tab === "invite" && (
+            <div className="space-y-5">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Текст приглашения</h2>
+              <div>
+                <label className={labelCls}>Текст для гостей</label>
+                <textarea rows={6} className={inputCls + " resize-none"} value={form.inviteText}
+                  onChange={(e) => set("inviteText", e.target.value)} />
+              </div>
+
+              {/* Preview */}
+              <div>
+                <label className={labelCls}>Предпросмотр</label>
+                {(() => {
+                  const tmpl = TEMPLATES.find((t) => t.id === form.tmplId) ?? TEMPLATES[0];
+                  const font = FONTS.find((f) => f.id === form.fontId) ?? FONTS[0];
+                  return (
+                    <div className={`p-8 text-center border-2 rounded-sm ${tmpl.bg} ${tmpl.border}`}
+                      style={{ boxShadow: "0 4px 30px rgba(61,43,31,0.08)" }}>
+                      <p className={`text-[9px] tracking-[0.5em] font-montserrat uppercase mb-3 ${tmpl.accent}`}>Вы приглашены</p>
+                      <h2 className={`text-2xl font-light mb-2 ${font.cls} ${tmpl.text}`}>{form.groomName} & {form.brideName}</h2>
+                      <p className={`text-xs tracking-wider font-montserrat mb-4 ${tmpl.accent}`}>{form.venueName}</p>
+                      <div className="w-10 h-px bg-gradient-to-r from-transparent via-[#B8976A] to-transparent mx-auto mb-4" />
+                      <p className={`text-sm leading-relaxed font-montserrat whitespace-pre-line ${tmpl.text} opacity-70`}>{form.inviteText}</p>
+                      <p className="text-[#B8976A] mt-5 tracking-[0.4em]">✦ ✦ ✦</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* RSVP ANSWERS */}
+          {tab === "rsvp_answers" && (
+            <div className="space-y-6">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Ответы гостей</h2>
+
+              {/* RSVP */}
+              <div>
+                <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase mb-3">
+                  Подтверждения присутствия ({rsvpList.length})
+                </p>
+                {rsvpList.length === 0 ? (
+                  <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm text-center">
+                    <p className="text-sm text-[#9B8878] font-montserrat">Ответов пока нет</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {rsvpList.map((r, i) => (
+                      <div key={i} className="bg-white border border-[#E8D5BE] px-4 py-3 rounded-sm flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-montserrat text-[#3D2B1F]">{r.name}</p>
+                          {r.email && <p className="text-xs text-[#9B8878] font-montserrat">{r.email}</p>}
+                        </div>
+                        <span className={`text-xs font-montserrat px-2.5 py-1 rounded-full border ${
+                          r.status === "yes"
+                            ? "border-[#B8976A] text-[#B8976A] bg-[#B8976A]/5"
+                            : "border-[#C9897A] text-[#C9897A] bg-[#C9897A]/5"
+                        }`}>
+                          {r.status === "yes" ? "Придёт" : "Не придёт"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Survey answers */}
+              <div>
+                <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase mb-3">
+                  Ответы на опросы ({surveyList.length})
+                </p>
+                {surveyList.length === 0 ? (
+                  <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm text-center">
+                    <p className="text-sm text-[#9B8878] font-montserrat">Ответов пока нет</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {surveyList.map((s, i) => (
+                      <div key={i} className="bg-white border border-[#E8D5BE] p-4 rounded-sm text-sm font-montserrat text-[#4A4035] space-y-1">
+                        <p className="text-[10px] text-[#9B8878] uppercase tracking-wider">Гость {i + 1}</p>
+                        {Object.entries(s).map(([q, a]) => (
+                          <p key={q}><span className="text-[#B8976A]">В{q}:</span> {a}</p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Save button */}
+          {tab !== "rsvp_answers" && (
+            <div className="mt-8 flex items-center gap-4">
+              <button onClick={handleSave}
+                className="px-8 py-3 bg-[#3D2B1F] text-[#FAF7F2] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#4A4035] transition-colors rounded-sm flex items-center gap-2">
+                <Icon name="Save" size={14} />
+                Сохранить изменения
+              </button>
+              {saved && (
+                <span className="text-xs text-[#7A9B6E] font-montserrat flex items-center gap-1.5 animate-fade-in">
+                  <Icon name="CheckCircle" size={14} />
+                  Сохранено!
+                </span>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

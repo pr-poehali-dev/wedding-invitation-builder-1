@@ -1,4 +1,5 @@
 import { FONTS, TEMPLATES, SURVEYS, Fade, SectionTitle } from "./wedding-shared";
+import { useWedding } from "@/context/WeddingContext";
 
 type Template = typeof TEMPLATES[number];
 type Font = typeof FONTS[number];
@@ -24,12 +25,34 @@ interface WeddingMiddleProps {
   setSurveyDone: (v: boolean) => void;
 }
 
+const RSVP_KEY = "wedding_rsvp_list";
+const SURVEY_KEY = "wedding_survey_list";
+
 export default function WeddingMiddle({
   tmpl, setTmpl, font, setFont, inviteText, setInviteText,
   rsvpName, setRsvpName, rsvpEmail, setRsvpEmail,
   rsvpStatus, setRsvpStatus, rsvpDone, setRsvpDone,
   answers, setAnswers, surveyDone, setSurveyDone,
 }: WeddingMiddleProps) {
+  const { data } = useWedding();
+
+  const handleRsvpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rsvpName || !rsvpStatus) return;
+    const list = JSON.parse(localStorage.getItem(RSVP_KEY) || "[]");
+    list.push({ name: rsvpName, email: rsvpEmail, status: rsvpStatus });
+    localStorage.setItem(RSVP_KEY, JSON.stringify(list));
+    setRsvpDone(true);
+  };
+
+  const handleSurveySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const list = JSON.parse(localStorage.getItem(SURVEY_KEY) || "[]");
+    list.push(answers);
+    localStorage.setItem(SURVEY_KEY, JSON.stringify(list));
+    setSurveyDone(true);
+  };
+
   return (
     <>
       {/* CONSTRUCTOR */}
@@ -76,8 +99,8 @@ export default function WeddingMiddle({
                 <p className="text-[10px] tracking-[0.35em] text-[#9B8878] font-montserrat uppercase mb-4 text-center">Предпросмотр</p>
                 <div className={`p-10 text-center border-2 rounded-sm ${tmpl.bg} ${tmpl.border}`} style={{ boxShadow: "0 8px 50px rgba(61,43,31,0.1)" }}>
                   <p className={`text-[9px] tracking-[0.5em] font-montserrat uppercase mb-3 ${tmpl.accent}`}>Вы приглашены</p>
-                  <h2 className={`text-3xl font-light mb-2 ${font.cls} ${tmpl.text}`}>Александр & Мария</h2>
-                  <p className={`text-xs tracking-wider font-montserrat mb-6 ${tmpl.accent}`}>12.09.2026 · Усадьба «Белые Берёзы»</p>
+                  <h2 className={`text-3xl font-light mb-2 ${font.cls} ${tmpl.text}`}>{data.groomName} & {data.brideName}</h2>
+                  <p className={`text-xs tracking-wider font-montserrat mb-6 ${tmpl.accent}`}>{new Date(data.weddingDate).toLocaleDateString("ru-RU")} · {data.venueName}</p>
                   <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#B8976A] to-transparent mx-auto mb-6" />
                   <p className={`text-sm leading-relaxed font-montserrat whitespace-pre-line ${tmpl.text} opacity-70`}>{inviteText}</p>
                   <p className="text-[#B8976A] mt-6 tracking-[0.4em]">✦ ✦ ✦</p>
@@ -104,7 +127,7 @@ export default function WeddingMiddle({
                 </p>
               </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); if (rsvpName && rsvpStatus) setRsvpDone(true); }}
+              <form onSubmit={handleRsvpSubmit}
                 className="bg-white border border-[#E8D5BE] p-8 rounded-sm space-y-6" style={{ boxShadow: "0 4px 40px rgba(61,43,31,0.06)" }}>
                 <div>
                   <label className="block text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase mb-2">Ваше имя *</label>
@@ -154,7 +177,7 @@ export default function WeddingMiddle({
                 <p className="text-sm text-[#9B8878] font-montserrat">Ваши пожелания помогут создать идеальный праздник.</p>
               </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); setSurveyDone(true); }} className="space-y-6">
+              <form onSubmit={handleSurveySubmit} className="space-y-6">
                 {SURVEYS.map((s, i) => (
                   <div key={s.id} className="bg-white border border-[#E8D5BE] p-7 rounded-sm" style={{ boxShadow: "0 4px 30px rgba(61,43,31,0.05)" }}>
                     <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase mb-1">Вопрос {i + 1}</p>

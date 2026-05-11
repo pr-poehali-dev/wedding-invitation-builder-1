@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, TRACKS, Fade, SectionTitle } from "./wedding-shared";
+import { useWedding } from "@/context/WeddingContext";
 
 interface WeddingBottomProps {
   playing: boolean;
@@ -16,6 +17,11 @@ export default function WeddingBottom({
   playing, setPlaying, volume, setVolume,
   currentTrack, setCurrentTrack, lightbox, setLightbox,
 }: WeddingBottomProps) {
+  const { data } = useWedding();
+
+  const weddingYear = new Date(data.weddingDate).getFullYear();
+  const weddingMonth = new Date(data.weddingDate).toLocaleString("ru-RU", { month: "long" });
+
   return (
     <>
       {/* MAP */}
@@ -148,10 +154,10 @@ export default function WeddingBottom({
           <Fade><SectionTitle title="Контакты" sub="Связаться с нами" /></Fade>
           <div className="grid md:grid-cols-2 gap-6">
             {[
-              { icon: "Phone", title: "Александр", sub: "Жених", val: "+7 (999) 123-45-67" },
-              { icon: "Phone", title: "Мария", sub: "Невеста", val: "+7 (999) 765-43-21" },
-              { icon: "Users", title: "Ведущий Иван", sub: "По вопросам программы", val: "+7 (916) 555-00-11" },
-              { icon: "Mail", title: "Email", sub: "Общие вопросы", val: "wedding@example.com" },
+              { icon: "Phone", title: data.groomName, sub: "Жених", val: data.contactGroom },
+              { icon: "Phone", title: data.brideName, sub: "Невеста", val: data.contactBride },
+              { icon: "Users", title: "Ведущий", sub: "По вопросам программы", val: data.contactHost },
+              { icon: "Mail", title: "Email", sub: "Общие вопросы", val: data.contactEmail },
             ].map((c, i) => (
               <Fade key={c.sub} delay={i * 80}>
                 <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm flex items-start gap-4" style={{ boxShadow: "0 4px 30px rgba(61,43,31,0.05)" }}>
@@ -173,8 +179,8 @@ export default function WeddingBottom({
               <h2 className="font-cormorant text-4xl font-light text-[#3D2B1F] mt-5 mb-2">
                 До встречи на нашем торжестве
               </h2>
-              <p className="text-sm text-[#9B8878] font-montserrat italic">С любовью, Александр & Мария</p>
-              <p className="text-[10px] tracking-[0.5em] text-[#B8976A] font-montserrat uppercase mt-7">12 · IX · 2026</p>
+              <p className="text-sm text-[#9B8878] font-montserrat italic">С любовью, {data.groomName} & {data.brideName}</p>
+              <p className="text-[10px] tracking-[0.5em] text-[#B8976A] font-montserrat uppercase mt-7">{weddingYear} · {weddingMonth}</p>
             </div>
           </Fade>
         </div>
