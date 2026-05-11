@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { useWedding, WeddingData } from "@/context/WeddingContext";
@@ -6,7 +6,7 @@ import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 const AUTH_KEY = "wedding_admin_auth";
 
-type Tab = "general" | "story" | "details" | "contacts" | "invite" | "rsvp_answers";
+type Tab = "general" | "story" | "details" | "contacts" | "invite" | "photos" | "rsvp_answers";
 
 const RSVP_KEY = "wedding_rsvp_list";
 const SURVEY_KEY = "wedding_survey_list";
@@ -17,6 +17,9 @@ export default function AdminPanel() {
   const [tab, setTab] = useState<Tab>("general");
   const [form, setForm] = useState<WeddingData>({ ...data });
   const [saved, setSaved] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [rsvpList] = useState<Array<{ name: string; email: string; status: string }>>(() => {
     try { return JSON.parse(localStorage.getItem(RSVP_KEY) || "[]"); } catch { return []; }
   });
@@ -44,6 +47,44 @@ export default function AdminPanel() {
   const set = (key: keyof WeddingData, value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    setPhotoError("");
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      try {
+        const res = await fetch("https://functions.poehali.dev/6275b039-e891-49fe-b873-328dac578f98", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: base64, contentType: file.type }),
+        });
+        const json = await res.json();
+        if (json.url) {
+          const updated = { ...form, galleryPhotos: [...(form.galleryPhotos || []), json.url] };
+          setForm(updated);
+          setData(updated);
+        } else {
+          setPhotoError("Ошибка загрузки. Попробуйте ещё раз.");
+        }
+      } catch {
+        setPhotoError("Ошибка сети. Проверьте соединение.");
+      } finally {
+        setPhotoUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDeletePhoto = (idx: number) => {
+    const updated = { ...form, galleryPhotos: form.galleryPhotos.filter((_, i) => i !== idx) };
+    setForm(updated);
+    setData(updated);
+  };
+
   const setTimelineField = (field: "timelineTitles" | "timelineTexts" | "timelineYears", idx: number, value: string) => {
     const arr = [...form[field]];
     arr[idx] = value;
@@ -59,6 +100,7 @@ export default function AdminPanel() {
     { id: "details", label: "Детали", icon: "Calendar" },
     { id: "contacts", label: "Контакты", icon: "Phone" },
     { id: "invite", label: "Приглашение", icon: "FileText" },
+    { id: "photos", label: "Фото", icon: "Image" },
     { id: "rsvp_answers", label: "Ответы гостей", icon: "Users" },
   ];
 
@@ -279,6 +321,73 @@ export default function AdminPanel() {
             </div>
           )}
 
+          {/* PHOTOS */}
+          {tab === "photos" && (
+            <div className="space-y-6">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Фотографии галереи</h2>
+
+              {/* Upload area */}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-[#E8D5BE] rounded-sm p-10 text-center cursor-pointer hover:border-[#B8976A] transition-colors group"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+                {photoUploading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-2 border-[#B8976A]/30 border-t-[#B8976A] rounded-full animate-spin" />
+                    <p className="text-sm text-[#9B8878] font-montserrat">Загружаем фото...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#E8C4B0]/30 flex items-center justify-center group-hover:bg-[#E8C4B0]/50 transition-colors">
+                      <Icon name="Upload" size={20} className="text-[#B8976A]" />
+                    </div>
+                    <p className="text-sm text-[#4A4035] font-montserrat">Нажмите, чтобы добавить фото</p>
+                    <p className="text-xs text-[#9B8878] font-montserrat">JPG, PNG, WEBP до 5 МБ</p>
+                  </div>
+                )}
+              </div>
+
+              {photoError && (
+                <div className="flex items-center gap-2 text-red-500 text-xs font-montserrat bg-red-50 border border-red-200 px-3 py-2 rounded-sm">
+                  <Icon name="AlertCircle" size={13} />
+                  {photoError}
+                </div>
+              )}
+
+              {/* Grid */}
+              {(form.galleryPhotos || []).length === 0 ? (
+                <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm text-center">
+                  <p className="text-sm text-[#9B8878] font-montserrat">Фотографии ещё не добавлены</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {(form.galleryPhotos || []).map((url, i) => (
+                    <div key={i} className="relative group aspect-square rounded-sm overflow-hidden border border-[#E8D5BE]">
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => handleDeletePhoto(i)}
+                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      >
+                        <Icon name="X" size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs text-[#9B8878] font-montserrat">
+                Всего фото: {(form.galleryPhotos || []).length}. Фотографии отображаются в галерее на сайте.
+              </p>
+            </div>
+          )}
+
           {/* RSVP ANSWERS */}
           {tab === "rsvp_answers" && (
             <div className="space-y-6">
@@ -340,7 +449,7 @@ export default function AdminPanel() {
           )}
 
           {/* Save button */}
-          {tab !== "rsvp_answers" && (
+          {tab !== "rsvp_answers" && tab !== "photos" && (
             <div className="mt-8 flex items-center gap-4">
               <button onClick={handleSave}
                 className="px-8 py-3 bg-[#3D2B1F] text-[#FAF7F2] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#4A4035] transition-colors rounded-sm flex items-center gap-2">

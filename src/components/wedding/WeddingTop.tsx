@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { HERO_IMAGE, NAV_ITEMS, Fade, SectionTitle } from "./wedding-shared";
 import { useWedding } from "@/context/WeddingContext";
+
+const AUTH_KEY = "wedding_admin_auth";
 
 interface WeddingTopProps {
   navOpen: boolean;
@@ -12,6 +15,8 @@ interface WeddingTopProps {
 
 export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: WeddingTopProps) {
   const { data } = useWedding();
+  const navigate = useNavigate();
+  const isAdmin = localStorage.getItem(AUTH_KEY) === "true";
 
   const weddingDateLabel = new Date(data.weddingDate).toLocaleDateString("ru-RU", {
     day: "numeric", month: "long", year: "numeric",
@@ -31,9 +36,19 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
           <button onClick={() => go("hero")} className="font-cormorant text-xl tracking-widest text-[#3D2B1F] font-light">
             {data.groomName[0]} & {data.brideName[0]}
           </button>
-          <button className="md:hidden" onClick={() => setNavOpen(!navOpen)}>
-            <Icon name={navOpen ? "X" : "Menu"} size={20} className="text-[#4A4035]" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(isAdmin ? "/admin/panel" : "/admin")}
+              className="flex items-center gap-1.5 text-[10px] tracking-[0.15em] font-montserrat text-[#9B8878] hover:text-[#B8976A] transition-colors uppercase"
+              title={isAdmin ? "Панель управления" : "Войти"}
+            >
+              <Icon name={isAdmin ? "Crown" : "Lock"} size={14} className="text-[#B8976A]" />
+              <span className="hidden sm:inline">{isAdmin ? "Кабинет" : "Войти"}</span>
+            </button>
+            <button className="md:hidden" onClick={() => setNavOpen(!navOpen)}>
+              <Icon name={navOpen ? "X" : "Menu"} size={20} className="text-[#4A4035]" />
+            </button>
+          </div>
           <div className="hidden md:flex items-center gap-5">
             {NAV_ITEMS.map((n) => (
               <button key={n.id} onClick={() => go(n.id)}
@@ -41,6 +56,13 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
                 {n.label}
               </button>
             ))}
+            <button
+              onClick={() => navigate(isAdmin ? "/admin/panel" : "/admin")}
+              className="flex items-center gap-1.5 text-[10px] tracking-[0.15em] font-montserrat text-[#9B8878] hover:text-[#B8976A] transition-colors uppercase border border-[#E8D5BE] hover:border-[#B8976A] px-3 py-1.5 rounded-sm"
+            >
+              <Icon name={isAdmin ? "Crown" : "Lock"} size={12} className="text-[#B8976A]" />
+              {isAdmin ? "Кабинет" : "Войти"}
+            </button>
           </div>
         </div>
         {navOpen && (

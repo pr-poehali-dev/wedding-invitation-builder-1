@@ -124,17 +124,31 @@ export default function WeddingBottom({
         <div className="max-w-5xl mx-auto">
           <Fade><SectionTitle title="Галерея" sub="Наши моменты" /></Fade>
           <Fade delay={100}>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} onClick={() => setLightbox(HERO_IMAGE)}
-                  className="aspect-square overflow-hidden cursor-pointer group relative rounded-sm">
-                  <img src={HERO_IMAGE} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-[#3D2B1F]/0 group-hover:bg-[#3D2B1F]/25 transition-all duration-300 flex items-center justify-center">
-                    <Icon name="ZoomIn" size={22} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            {(data.galleryPhotos && data.galleryPhotos.length > 0) ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {data.galleryPhotos.map((url, i) => (
+                  <div key={i} onClick={() => setLightbox(url)}
+                    className="aspect-square overflow-hidden cursor-pointer group relative rounded-sm">
+                    <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-[#3D2B1F]/0 group-hover:bg-[#3D2B1F]/25 transition-all duration-300 flex items-center justify-center">
+                      <Icon name="ZoomIn" size={22} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} onClick={() => setLightbox(HERO_IMAGE)}
+                    className="aspect-square overflow-hidden cursor-pointer group relative rounded-sm">
+                    <img src={HERO_IMAGE} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-[#3D2B1F]/0 group-hover:bg-[#3D2B1F]/25 transition-all duration-300 flex items-center justify-center">
+                      <Icon name="ZoomIn" size={22} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </Fade>
         </div>
       </section>
