@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import datetime
 import urllib.request
+import urllib.error
 
 def _sign(key, msg):
     return hmac.new(key, msg.encode("utf-8"), hashlib.sha256).digest()
@@ -69,10 +70,13 @@ def upload_to_s3(image_bytes: bytes, key: str, content_type: str) -> str:
     req.add_header("Authorization", authorization)
     req.add_header("Content-Length", str(len(image_bytes)))
 
-    with urllib.request.urlopen(req) as resp:
-        resp.read()
+    try:
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            resp.read()
+    except urllib.error.HTTPError as e:
+        raise Exception(f"S3 error {e.code}: {e.read().decode()}")
 
-    cdn_url = f"https://cdn.poehali.dev/projects/{access_key}/files/{key}"
+    cdn_url = f"https://cdn.poehali.dev/projects/{access_key}/bucket/{key}"
     return cdn_url
 
 
@@ -108,7 +112,14 @@ def handler(event: dict, context) -> dict:
     ext = content_type.split("/")[-1].replace("jpeg", "jpg")
     key = f"wedding-gallery/{uuid.uuid4()}.{ext}"
 
-    cdn_url = upload_to_s3(image_bytes, key, content_type)
+    try:
+        cdn_url = upload_to_s3(image_bytes, key, content_type)
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "headers": {"Access-Control-Allow-Origin": "*"},
+            "body": json.dumps({"error": str(e)}),
+        }
 
     return {
         "statusCode": 200,
