@@ -15,15 +15,10 @@ def handler(event: dict, context) -> dict:
     cur.close()
     conn.close()
 
-    if not row:
-        return {
-            'statusCode': 404,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'not_found'})
-        }
+    data = row[0] if row else {}
 
     return {
         'statusCode': 200,
         'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-        'body': json.dumps(row[0])
+        'body': json.dumps(data)
     }
