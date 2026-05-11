@@ -6,10 +6,9 @@ import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 const AUTH_KEY = "wedding_admin_auth";
 
-type Tab = "general" | "story" | "details" | "contacts" | "invite" | "photos" | "music" | "rsvp_answers" | "texts";
+type Tab = "general" | "story" | "details" | "contacts" | "photos" | "music" | "registrations" | "texts";
 
-const RSVP_KEY = "wedding_rsvp_list";
-const SURVEY_KEY = "wedding_survey_list";
+const REG_KEY = "wedding_reg_list";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -24,11 +23,8 @@ export default function AdminPanel() {
   const [audioUploading, setAudioUploading] = useState(false);
   const [audioError, setAudioError] = useState("");
   const [audioProgress, setAudioProgress] = useState(0);
-  const [rsvpList] = useState<Array<{ name: string; email: string; status: string }>>(() => {
-    try { return JSON.parse(localStorage.getItem(RSVP_KEY) || "[]"); } catch { return []; }
-  });
-  const [surveyList] = useState<Array<Record<string, string>>>(() => {
-    try { return JSON.parse(localStorage.getItem(SURVEY_KEY) || "[]"); } catch { return []; }
+  const [regList] = useState<Array<Record<string, string>>>(() => {
+    try { return JSON.parse(localStorage.getItem(REG_KEY) || "[]"); } catch { return []; }
   });
 
   useEffect(() => {
@@ -152,10 +148,9 @@ export default function AdminPanel() {
     { id: "story", label: "История", icon: "BookOpen" },
     { id: "details", label: "Детали", icon: "Calendar" },
     { id: "contacts", label: "Контакты", icon: "Phone" },
-    { id: "invite", label: "Приглашение", icon: "FileText" },
     { id: "photos", label: "Фото", icon: "Image" },
     { id: "music", label: "Музыка", icon: "Music" },
-    { id: "rsvp_answers", label: "Ответы гостей", icon: "Users" },
+    { id: "registrations", label: "Регистрации", icon: "ClipboardList" },
   ];
 
   return (
@@ -534,37 +529,7 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* INVITE */}
-          {tab === "invite" && (
-            <div className="space-y-5">
-              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Текст приглашения</h2>
-              <div>
-                <label className={labelCls}>Текст для гостей</label>
-                <textarea rows={6} className={inputCls + " resize-none"} value={form.inviteText}
-                  onChange={(e) => set("inviteText", e.target.value)} />
-              </div>
 
-              {/* Preview */}
-              <div>
-                <label className={labelCls}>Предпросмотр</label>
-                {(() => {
-                  const tmpl = TEMPLATES.find((t) => t.id === form.tmplId) ?? TEMPLATES[0];
-                  const font = FONTS.find((f) => f.id === form.fontId) ?? FONTS[0];
-                  return (
-                    <div className={`p-8 text-center border-2 rounded-sm ${tmpl.bg} ${tmpl.border}`}
-                      style={{ boxShadow: "0 4px 30px rgba(61,43,31,0.08)" }}>
-                      <p className={`text-[9px] tracking-[0.5em] font-montserrat uppercase mb-3 ${tmpl.accent}`}>Вы приглашены</p>
-                      <h2 className={`text-2xl font-light mb-2 ${font.cls} ${tmpl.text}`}>{form.groomName} & {form.brideName}</h2>
-                      <p className={`text-xs tracking-wider font-montserrat mb-4 ${tmpl.accent}`}>{form.venueName}</p>
-                      <div className="w-10 h-px bg-gradient-to-r from-transparent via-[#B8976A] to-transparent mx-auto mb-4" />
-                      <p className={`text-sm leading-relaxed font-montserrat whitespace-pre-line ${tmpl.text} opacity-70`}>{form.inviteText}</p>
-                      <p className="text-[#B8976A] mt-5 tracking-[0.4em]">✦ ✦ ✦</p>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
 
           {/* PHOTOS */}
           {tab === "photos" && (
@@ -720,63 +685,51 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* RSVP ANSWERS */}
-          {tab === "rsvp_answers" && (
+          {/* REGISTRATIONS */}
+          {tab === "registrations" && (
             <div className="space-y-6">
-              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Ответы гостей</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Регистрации гостей</h2>
+                <span className="text-xs font-montserrat text-[#9B8878] border border-[#E8D5BE] px-3 py-1 rounded-full">
+                  {regList.length} чел.
+                </span>
+              </div>
 
-              {/* RSVP */}
-              <div>
-                <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase mb-3">
-                  Подтверждения присутствия ({rsvpList.length})
-                </p>
-                {rsvpList.length === 0 ? (
-                  <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm text-center">
-                    <p className="text-sm text-[#9B8878] font-montserrat">Ответов пока нет</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {rsvpList.map((r, i) => (
-                      <div key={i} className="bg-white border border-[#E8D5BE] px-4 py-3 rounded-sm flex items-center justify-between">
+              {regList.length === 0 ? (
+                <div className="bg-white border border-[#E8D5BE] p-10 rounded-sm text-center">
+                  <p className="text-sm text-[#9B8878] font-montserrat">Регистраций пока нет</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {regList.map((r, i) => (
+                    <div key={i} className="bg-white border border-[#E8D5BE] p-5 rounded-sm" style={{ boxShadow: "0 2px 20px rgba(61,43,31,0.04)" }}>
+                      <div className="flex items-start justify-between gap-3 mb-3">
                         <div>
-                          <p className="text-sm font-montserrat text-[#3D2B1F]">{r.name}</p>
-                          {r.email && <p className="text-xs text-[#9B8878] font-montserrat">{r.email}</p>}
+                          <p className="font-cormorant text-lg text-[#3D2B1F]">{r.name}</p>
+                          <div className="flex flex-wrap gap-3 mt-1">
+                            {r.phone && <p className="text-xs text-[#9B8878] font-montserrat">{r.phone}</p>}
+                            {r.email && <p className="text-xs text-[#9B8878] font-montserrat">{r.email}</p>}
+                          </div>
                         </div>
-                        <span className={`text-xs font-montserrat px-2.5 py-1 rounded-full border ${
-                          r.status === "yes"
+                        <span className={`shrink-0 text-xs font-montserrat px-2.5 py-1 rounded-full border ${
+                          r.attending === "yes"
                             ? "border-[#B8976A] text-[#B8976A] bg-[#B8976A]/5"
                             : "border-[#C9897A] text-[#C9897A] bg-[#C9897A]/5"
                         }`}>
-                          {r.status === "yes" ? "Придёт" : "Не придёт"}
+                          {r.attending === "yes" ? "Придёт" : "Не придёт"}
                         </span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Survey answers */}
-              <div>
-                <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase mb-3">
-                  Ответы на опросы ({surveyList.length})
-                </p>
-                {surveyList.length === 0 ? (
-                  <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm text-center">
-                    <p className="text-sm text-[#9B8878] font-montserrat">Ответов пока нет</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {surveyList.map((s, i) => (
-                      <div key={i} className="bg-white border border-[#E8D5BE] p-4 rounded-sm text-sm font-montserrat text-[#4A4035] space-y-1">
-                        <p className="text-[10px] text-[#9B8878] uppercase tracking-wider">Гость {i + 1}</p>
-                        {Object.entries(s).map(([q, a]) => (
-                          <p key={q}><span className="text-[#B8976A]">Вопрос {q}:</span> {a}</p>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      {r.attending === "yes" && (
+                        <div className="border-t border-[#E8D5BE] pt-3 flex flex-wrap gap-4 text-xs font-montserrat text-[#9B8878]">
+                          {r.guests && <span>Гостей: <span className="text-[#4A4035]">{r.guests}</span></span>}
+                          {r.menu && <span>Меню: <span className="text-[#4A4035]">{r.menu}</span></span>}
+                          {r.wishes && <span>Пожелания: <span className="text-[#4A4035]">{r.wishes}</span></span>}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

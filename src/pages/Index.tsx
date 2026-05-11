@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Petals, TEMPLATES, FONTS, TRACKS } from "@/components/wedding/wedding-shared";
+import { Petals, TRACKS } from "@/components/wedding/wedding-shared";
 import WeddingTop from "@/components/wedding/WeddingTop";
 import WeddingMiddle from "@/components/wedding/WeddingMiddle";
 import WeddingBottom from "@/components/wedding/WeddingBottom";
@@ -10,15 +10,7 @@ export default function Index() {
   const { data } = useWedding();
   const [navOpen, setNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("hero");
-  const [tmpl, setTmpl] = useState(TEMPLATES[0]);
-  const [font, setFont] = useState(FONTS[0]);
-  const [inviteText, setInviteText] = useState("Дорогой гость,\n\nМы с радостью приглашаем вас разделить с нами этот особенный день.");
-  const [rsvpName, setRsvpName] = useState("");
-  const [rsvpEmail, setRsvpEmail] = useState("");
-  const [rsvpStatus, setRsvpStatus] = useState<"" | "yes" | "no">("");
-  const [rsvpDone, setRsvpDone] = useState(false);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [surveyDone, setSurveyDone] = useState(false);
+  const [regDone, setRegDone] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
   const [currentTrack, setCurrentTrack] = useState(0);
@@ -178,15 +170,8 @@ export default function Index() {
         go={go}
       />
       <WeddingMiddle
-        tmpl={tmpl} setTmpl={setTmpl}
-        font={font} setFont={setFont}
-        inviteText={inviteText} setInviteText={setInviteText}
-        rsvpName={rsvpName} setRsvpName={setRsvpName}
-        rsvpEmail={rsvpEmail} setRsvpEmail={setRsvpEmail}
-        rsvpStatus={rsvpStatus} setRsvpStatus={setRsvpStatus}
-        rsvpDone={rsvpDone} setRsvpDone={setRsvpDone}
-        answers={answers} setAnswers={setAnswers}
-        surveyDone={surveyDone} setSurveyDone={setSurveyDone}
+        regDone={regDone}
+        setRegDone={setRegDone}
       />
       <WeddingBottom
         playing={playing} setPlaying={setPlaying}

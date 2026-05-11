@@ -41,11 +41,14 @@ export const TRACKS = [
 ];
 
 export const NAV_ITEMS = [
-  { id: "hero", label: "Главная" }, { id: "story", label: "История" },
-  { id: "details", label: "Детали" }, { id: "constructor", label: "Конструктор" },
-  { id: "rsvp", label: "RSVP" }, { id: "survey", label: "Опросы" },
-  { id: "map", label: "Карта" }, { id: "music", label: "Музыка" },
-  { id: "gallery", label: "Галерея" }, { id: "contacts", label: "Контакты" },
+  { id: "hero", label: "Главная" },
+  { id: "story", label: "История" },
+  { id: "details", label: "Детали" },
+  { id: "rsvp", label: "Регистрация" },
+  { id: "map", label: "Карта" },
+  { id: "music", label: "Музыка" },
+  { id: "gallery", label: "Галерея" },
+  { id: "contacts", label: "Контакты" },
 ];
 
 export function useInView(threshold = 0.12) {
