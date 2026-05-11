@@ -158,7 +158,7 @@ export default function WeddingMiddle({
                   className="w-full py-3.5 bg-[#3D2B1F] text-[#FAF7F2] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#4A4035] transition-colors rounded-sm">
                   Отправить ответ
                 </button>
-                <p className="text-xs text-[#9B8878] font-montserrat text-center">Просим ответить до 1 августа 2026</p>
+                <p className="text-xs text-[#9B8878] font-montserrat text-center">{data.rsvpDeadline}</p>
               </form>
             )}
           </Fade>

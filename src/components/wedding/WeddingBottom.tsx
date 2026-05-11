@@ -30,9 +30,9 @@ export default function WeddingBottom({
           <Fade><SectionTitle title="Карта" sub="Как добраться" /></Fade>
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             {[
-              { icon: "Car", title: "На автомобиле", text: "По Рублёво-Успенскому шоссе, 42 км от МКАД. Бесплатная парковка." },
-              { icon: "Train", title: "На электричке", text: "С Белорусского вокзала до ст. Усово, далее такси 5 минут." },
-              { icon: "Bus", title: "Трансфер", text: "Автобус от м. Строгино в 13:00. Бесплатно для гостей." },
+              { icon: "Car", title: data.mapCarTitle, text: data.mapCarText },
+              { icon: "Train", title: data.mapTrainTitle, text: data.mapTrainText },
+              { icon: "Bus", title: data.mapBusTitle, text: data.mapBusText },
             ].map((c, i) => (
               <Fade key={c.title} delay={i * 100}>
                 <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm text-center" style={{ boxShadow: "0 4px 30px rgba(61,43,31,0.05)" }}>
@@ -191,9 +191,9 @@ export default function WeddingBottom({
             <div className="text-center mt-20 pb-6">
               <span className="text-[#B8976A] tracking-[0.5em] text-lg">✦ ✦ ✦</span>
               <h2 className="font-cormorant text-4xl font-light text-[#3D2B1F] mt-5 mb-2">
-                До встречи на нашем торжестве
+                {data.footerTitle}
               </h2>
-              <p className="text-sm text-[#9B8878] font-montserrat italic">С любовью, {data.groomName} & {data.brideName}</p>
+              <p className="text-sm text-[#9B8878] font-montserrat italic">{data.footerSub}, {data.groomName} & {data.brideName}</p>
               <p className="text-[10px] tracking-[0.5em] text-[#B8976A] font-montserrat uppercase mt-7">{weddingYear} · {weddingMonth}</p>
             </div>
           </Fade>

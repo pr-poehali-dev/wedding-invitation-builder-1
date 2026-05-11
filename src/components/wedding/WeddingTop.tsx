@@ -85,7 +85,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
         </div>
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <p className="text-[10px] tracking-[0.7em] text-white/65 font-montserrat uppercase mb-6 animate-fade-in" style={{ animationDelay: "0.3s", animationFillMode: "both" }}>
-            Вы приглашены
+            {data.heroTagline}
           </p>
           <h1 className="font-cormorant text-6xl md:text-8xl font-light text-white leading-none mb-2 animate-fade-up" style={{ animationDelay: "0.6s", animationFillMode: "both" }}>
             {data.groomName}
@@ -114,7 +114,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
           <div className="animate-fade-up" style={{ animationDelay: "1.6s", animationFillMode: "both" }}>
             <button onClick={() => go("rsvp")}
               className="mt-10 px-9 py-3.5 border border-white/45 text-white text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-white hover:text-[#3D2B1F] transition-all duration-300">
-              Подтвердить присутствие
+              {data.heroBtn}
             </button>
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
       {/* STORY */}
       <section id="story" className="py-24 px-6 bg-[#FAF7F2]">
         <div className="max-w-4xl mx-auto">
-          <Fade><SectionTitle title="Наша история" sub="Как всё началось" /></Fade>
+          <Fade><SectionTitle title={data.storyTitle} sub={data.storySub} /></Fade>
           <div className="relative">
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#B8976A]/40 to-transparent hidden md:block" />
             {timeline.map((item, i) => (
@@ -149,7 +149,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
       {/* DETAILS */}
       <section id="details" className="py-24 px-6 bg-[#F5F0E8]">
         <div className="max-w-5xl mx-auto">
-          <Fade><SectionTitle title="Детали события" sub="Что нужно знать" /></Fade>
+          <Fade><SectionTitle title={data.detailsTitle} sub={data.detailsSub} /></Fade>
           <div className="grid md:grid-cols-3 gap-7">
             {[
               {
@@ -158,11 +158,11 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
               },
               {
                 icon: "MapPin", title: "Место",
-                lines: [data.venueName, data.venueAddress, "Московская область"],
+                lines: [data.venueName, data.venueAddress, data.venueRegion],
               },
               {
                 icon: "Clock", title: "Программа",
-                lines: [`${data.weddingTime} — Церемония`, "15:30 — Банкет", "23:00 — Окончание"],
+                lines: data.programLines,
               },
             ].map((c, i) => (
               <Fade key={c.title} delay={i * 100}>

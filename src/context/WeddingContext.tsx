@@ -11,6 +11,7 @@ export interface WeddingData {
   weddingTime: string;
   venueName: string;
   venueAddress: string;
+  venueRegion: string;
   inviteText: string;
   tmplId: string;
   fontId: string;
@@ -26,6 +27,23 @@ export interface WeddingData {
   galleryPhotos: string[];
   audioUrl: string;
   audioName: string;
+  // Texts
+  heroTagline: string;
+  heroBtn: string;
+  storyTitle: string;
+  storySub: string;
+  detailsTitle: string;
+  detailsSub: string;
+  programLines: string[];
+  rsvpDeadline: string;
+  mapCarTitle: string;
+  mapCarText: string;
+  mapTrainTitle: string;
+  mapTrainText: string;
+  mapBusTitle: string;
+  mapBusText: string;
+  footerTitle: string;
+  footerSub: string;
 }
 
 const DEFAULTS: WeddingData = {
@@ -35,6 +53,7 @@ const DEFAULTS: WeddingData = {
   weddingTime: "14:00",
   venueName: "Усадьба «Белые Берёзы»",
   venueAddress: "Рублёво-Успенское ш., 42",
+  venueRegion: "Московская область",
   inviteText: "Дорогой гость,\n\nМы с радостью приглашаем вас разделить с нами этот особенный день.",
   tmplId: "classic",
   fontId: "cormorant",
@@ -55,6 +74,22 @@ const DEFAULTS: WeddingData = {
   galleryPhotos: [],
   audioUrl: "",
   audioName: "",
+  heroTagline: "Вы приглашены",
+  heroBtn: "Подтвердить присутствие",
+  storyTitle: "Наша история",
+  storySub: "Как всё началось",
+  detailsTitle: "Детали события",
+  detailsSub: "Что нужно знать",
+  programLines: ["14:00 — Церемония", "15:30 — Банкет", "23:00 — Окончание"],
+  rsvpDeadline: "Просим ответить до 1 августа 2026",
+  mapCarTitle: "На автомобиле",
+  mapCarText: "По Рублёво-Успенскому шоссе, 42 км от МКАД. Бесплатная парковка.",
+  mapTrainTitle: "На электричке",
+  mapTrainText: "С Белорусского вокзала до ст. Усово, далее такси 5 минут.",
+  mapBusTitle: "Трансфер",
+  mapBusText: "Автобус от м. Строгино в 13:00. Бесплатно для гостей.",
+  footerTitle: "До встречи на нашем торжестве",
+  footerSub: "С любовью",
 };
 
 const STORAGE_KEY = "wedding_site_data";
@@ -80,6 +115,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         ...parsed,
         galleryPhotos: Array.isArray(parsed.galleryPhotos) ? parsed.galleryPhotos : [],
         dressCodeColors: Array.isArray(parsed.dressCodeColors) ? parsed.dressCodeColors : DEFAULTS.dressCodeColors,
+        programLines: Array.isArray(parsed.programLines) ? parsed.programLines : DEFAULTS.programLines,
         timelineTitles: Array.isArray(parsed.timelineTitles) ? parsed.timelineTitles : DEFAULTS.timelineTitles,
         timelineTexts: Array.isArray(parsed.timelineTexts) ? parsed.timelineTexts : DEFAULTS.timelineTexts,
         timelineYears: Array.isArray(parsed.timelineYears) ? parsed.timelineYears : DEFAULTS.timelineYears,

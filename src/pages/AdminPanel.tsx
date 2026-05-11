@@ -6,7 +6,7 @@ import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 const AUTH_KEY = "wedding_admin_auth";
 
-type Tab = "general" | "story" | "details" | "contacts" | "invite" | "photos" | "music" | "rsvp_answers";
+type Tab = "general" | "story" | "details" | "contacts" | "invite" | "photos" | "music" | "rsvp_answers" | "texts";
 
 const RSVP_KEY = "wedding_rsvp_list";
 const SURVEY_KEY = "wedding_survey_list";
@@ -148,6 +148,7 @@ export default function AdminPanel() {
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: "general", label: "Общее", icon: "Settings" },
+    { id: "texts", label: "Тексты", icon: "Type" },
     { id: "story", label: "История", icon: "BookOpen" },
     { id: "details", label: "Детали", icon: "Calendar" },
     { id: "contacts", label: "Контакты", icon: "Phone" },
@@ -214,6 +215,137 @@ export default function AdminPanel() {
 
         {/* Content */}
         <main className="flex-1 p-6 md:pt-6 pt-14 max-w-2xl">
+
+          {/* TEXTS */}
+          {tab === "texts" && (
+            <div className="space-y-8">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Тексты сайта</h2>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Главный экран</h3>
+                <div>
+                  <label className={labelCls}>Надпись над именами</label>
+                  <input className={inputCls} value={form.heroTagline} onChange={(e) => set("heroTagline", e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelCls}>Текст кнопки</label>
+                  <input className={inputCls} value={form.heroBtn} onChange={(e) => set("heroBtn", e.target.value)} />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Раздел «История»</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Заголовок</label>
+                    <input className={inputCls} value={form.storyTitle} onChange={(e) => set("storyTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Подзаголовок</label>
+                    <input className={inputCls} value={form.storySub} onChange={(e) => set("storySub", e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Раздел «Детали»</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Заголовок</label>
+                    <input className={inputCls} value={form.detailsTitle} onChange={(e) => set("detailsTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Подзаголовок</label>
+                    <input className={inputCls} value={form.detailsSub} onChange={(e) => set("detailsSub", e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Регион площадки</label>
+                  <input className={inputCls} value={form.venueRegion} onChange={(e) => set("venueRegion", e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelCls}>Программа (каждая строка — отдельный пункт)</label>
+                  {(form.programLines || []).map((line, i) => (
+                    <div key={i} className="flex gap-2 mb-2">
+                      <input
+                        className={inputCls}
+                        value={line}
+                        onChange={(e) => {
+                          const arr = [...(form.programLines || [])];
+                          arr[i] = e.target.value;
+                          setForm((f) => ({ ...f, programLines: arr }));
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, programLines: (f.programLines || []).filter((_, j) => j !== i) }))}
+                        className="px-3 py-2 text-[#C9897A] border border-[#E8D5BE] rounded-sm hover:bg-[#C9897A]/10 transition-colors shrink-0 text-sm"
+                      >×</button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, programLines: [...(f.programLines || []), ""] }))}
+                    className="text-[10px] tracking-widest font-montserrat uppercase text-[#B8976A] hover:text-[#3D2B1F] transition-colors"
+                  >+ Добавить пункт</button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Раздел «RSVP»</h3>
+                <div>
+                  <label className={labelCls}>Дедлайн ответа</label>
+                  <input className={inputCls} value={form.rsvpDeadline} onChange={(e) => set("rsvpDeadline", e.target.value)} />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Раздел «Как добраться»</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Заголовок 1</label>
+                    <input className={inputCls} value={form.mapCarTitle} onChange={(e) => set("mapCarTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Описание 1</label>
+                    <input className={inputCls} value={form.mapCarText} onChange={(e) => set("mapCarText", e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Заголовок 2</label>
+                    <input className={inputCls} value={form.mapTrainTitle} onChange={(e) => set("mapTrainTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Описание 2</label>
+                    <input className={inputCls} value={form.mapTrainText} onChange={(e) => set("mapTrainText", e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Заголовок 3</label>
+                    <input className={inputCls} value={form.mapBusTitle} onChange={(e) => set("mapBusTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Описание 3</label>
+                    <input className={inputCls} value={form.mapBusText} onChange={(e) => set("mapBusText", e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Подвал сайта</h3>
+                <div>
+                  <label className={labelCls}>Заголовок</label>
+                  <input className={inputCls} value={form.footerTitle} onChange={(e) => set("footerTitle", e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelCls}>Подпись («С любовью, Имена»)</label>
+                  <input className={inputCls} value={form.footerSub} onChange={(e) => set("footerSub", e.target.value)} />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* GENERAL */}
           {tab === "general" && (
