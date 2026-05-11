@@ -76,7 +76,7 @@ const DEFAULTS: WeddingData = {
   galleryPhotos: [],
   audioUrl: "",
   audioName: "",
-  heroTagline: "Вы приглашены",
+  heroTagline: "Регистрация на торжество",
   heroBtn: "Подтвердить присутствие",
   storyTitle: "Наша история",
   storySub: "Как всё началось",
