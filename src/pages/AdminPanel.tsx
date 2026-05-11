@@ -6,7 +6,7 @@ import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 const AUTH_KEY = "wedding_admin_auth";
 
-type Tab = "general" | "story" | "details" | "contacts" | "photos" | "music" | "registrations" | "texts";
+type Tab = "general" | "story" | "details" | "contacts" | "photos" | "music" | "registrations" | "texts" | "notes";
 
 const REG_KEY = "wedding_reg_list";
 
@@ -159,6 +159,7 @@ export default function AdminPanel() {
     { id: "story", label: "История", icon: "BookOpen" },
     { id: "details", label: "Детали", icon: "Calendar" },
     { id: "contacts", label: "Контакты", icon: "Phone" },
+    { id: "notes", label: "Примечания", icon: "StickyNote" },
     { id: "photos", label: "Фото", icon: "Image" },
     { id: "music", label: "Музыка", icon: "Music" },
     { id: "registrations", label: "Регистрации", icon: "ClipboardList" },
@@ -541,6 +542,43 @@ export default function AdminPanel() {
           )}
 
 
+
+          {/* NOTES */}
+          {tab === "notes" && (
+            <div className="space-y-5">
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Примечания</h2>
+              <p className="text-xs text-[#9B8878] font-montserrat">Каждая строка — отдельный пункт на сайте.</p>
+              {(form.notes || []).map((note, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <input
+                    className={inputCls + " flex-1"}
+                    value={note}
+                    placeholder={`Примечание ${i + 1}`}
+                    onChange={(e) => {
+                      const arr = [...(form.notes || [])];
+                      arr[i] = e.target.value;
+                      setForm((f) => ({ ...f, notes: arr }));
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const arr = (form.notes || []).filter((_, j) => j !== i);
+                      setForm((f) => ({ ...f, notes: arr }));
+                    }}
+                    className="px-3 py-2.5 border border-[#E8D5BE] text-[#9B8878] hover:text-[#C9897A] hover:border-[#C9897A] rounded-sm transition-colors text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setForm((f) => ({ ...f, notes: [...(f.notes || []), ""] }))}
+                className="flex items-center gap-2 text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase border border-[#E8D5BE] hover:border-[#B8976A] px-4 py-2.5 rounded-sm transition-colors"
+              >
+                <Icon name="Plus" size={13} /> Добавить примечание
+              </button>
+            </div>
+          )}
 
           {/* PHOTOS */}
           {tab === "photos" && (

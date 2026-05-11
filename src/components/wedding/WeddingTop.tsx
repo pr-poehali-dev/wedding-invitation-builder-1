@@ -193,6 +193,27 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
           </Fade>
         </div>
       </section>
+
+      {/* NOTES */}
+      {data.notes && data.notes.length > 0 && (
+        <section id="notes" className="py-16 px-6 bg-[#FAF7F2]">
+          <div className="max-w-2xl mx-auto">
+            <Fade>
+              <SectionTitle title="Примечания" sub="Важная информация" />
+            </Fade>
+            <div className="space-y-3">
+              {data.notes.map((note, i) => (
+                <Fade key={i} delay={i * 80}>
+                  <div className="flex items-start gap-4 bg-white border border-[#E8D5BE] px-6 py-4 rounded-sm" style={{ boxShadow: "0 2px 20px rgba(61,43,31,0.04)" }}>
+                    <span className="text-[#B8976A] mt-0.5 shrink-0">✦</span>
+                    <p className="text-sm text-[#4A4035] font-montserrat leading-relaxed">{note}</p>
+                  </div>
+                </Fade>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

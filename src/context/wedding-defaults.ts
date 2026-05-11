@@ -39,6 +39,7 @@ export interface WeddingData {
   footerSub: string;
   mapLat: string;
   mapLng: string;
+  notes: string[];
 }
 
 export const WEDDING_DEFAULTS: WeddingData = {
@@ -87,6 +88,7 @@ export const WEDDING_DEFAULTS: WeddingData = {
   footerSub: "С любовью",
   mapLat: "55.7494",
   mapLng: "37.2219",
+  notes: [],
 };
 
 export function mergeWithDefaults(parsed: Partial<WeddingData>): WeddingData {
@@ -101,5 +103,6 @@ export function mergeWithDefaults(parsed: Partial<WeddingData>): WeddingData {
     timelineYears: Array.isArray(parsed.timelineYears) ? parsed.timelineYears : WEDDING_DEFAULTS.timelineYears,
     audioUrl: parsed.audioUrl ?? "",
     audioName: parsed.audioName ?? "",
+    notes: Array.isArray(parsed.notes) ? parsed.notes : [],
   };
 }

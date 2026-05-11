@@ -44,6 +44,7 @@ export const NAV_ITEMS = [
   { id: "hero", label: "Главная" },
   { id: "story", label: "История" },
   { id: "details", label: "Детали" },
+  { id: "notes", label: "Примечания" },
   { id: "rsvp", label: "Регистрация" },
   { id: "map", label: "Карта" },
   { id: "music", label: "Музыка" },
