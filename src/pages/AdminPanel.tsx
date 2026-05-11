@@ -578,7 +578,7 @@ export default function AdminPanel() {
                       <div key={i} className="bg-white border border-[#E8D5BE] p-4 rounded-sm text-sm font-montserrat text-[#4A4035] space-y-1">
                         <p className="text-[10px] text-[#9B8878] uppercase tracking-wider">Гость {i + 1}</p>
                         {Object.entries(s).map(([q, a]) => (
-                          <p key={q}><span className="text-[#B8976A]">В{q}:</span> {a}</p>
+                          <p key={q}><span className="text-[#B8976A]">Вопрос {q}:</span> {a}</p>
                         ))}
                       </div>
                     ))}

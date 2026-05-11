@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Petals, FONTS, TEMPLATES, TRACKS } from "@/components/wedding/wedding-shared";
+import { Petals, TEMPLATES, FONTS, TRACKS } from "@/components/wedding/wedding-shared";
 import WeddingTop from "@/components/wedding/WeddingTop";
 import WeddingMiddle from "@/components/wedding/WeddingMiddle";
 import WeddingBottom from "@/components/wedding/WeddingBottom";

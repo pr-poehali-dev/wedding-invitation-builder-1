@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 type Template = typeof TEMPLATES[number];
@@ -70,7 +70,19 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   const [data, setDataState] = useState<WeddingData>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? { ...DEFAULTS, ...JSON.parse(saved) } : DEFAULTS;
+      if (!saved) return DEFAULTS;
+      const parsed = JSON.parse(saved);
+      // Ensure array fields are always arrays (backward compat with old localStorage)
+      return {
+        ...DEFAULTS,
+        ...parsed,
+        galleryPhotos: Array.isArray(parsed.galleryPhotos) ? parsed.galleryPhotos : [],
+        timelineTitles: Array.isArray(parsed.timelineTitles) ? parsed.timelineTitles : DEFAULTS.timelineTitles,
+        timelineTexts: Array.isArray(parsed.timelineTexts) ? parsed.timelineTexts : DEFAULTS.timelineTexts,
+        timelineYears: Array.isArray(parsed.timelineYears) ? parsed.timelineYears : DEFAULTS.timelineYears,
+        audioUrl: parsed.audioUrl ?? "",
+        audioName: parsed.audioName ?? "",
+      };
     } catch {
       return DEFAULTS;
     }

@@ -1,0 +1,1 @@
+export { useWedding } from "./WeddingContext";

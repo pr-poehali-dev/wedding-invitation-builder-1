@@ -34,7 +34,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FAF7F2]/90 backdrop-blur-sm border-b border-[#E8C4B0]/30">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <button onClick={() => go("hero")} className="font-cormorant text-xl tracking-widest text-[#3D2B1F] font-light">
-            {data.groomName[0]} & {data.brideName[0]}
+            {data.groomName?.[0] ?? "А"} & {data.brideName?.[0] ?? "М"}
           </button>
           <div className="flex items-center gap-3">
             <button
