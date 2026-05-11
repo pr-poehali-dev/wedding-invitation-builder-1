@@ -300,6 +300,28 @@ export default function AdminPanel() {
               </div>
 
               <div className="space-y-4">
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Метка на карте</h3>
+                <p className="text-xs text-[#9B8878] font-montserrat">Координаты места проведения. Найти можно на <a href="https://yandex.ru/maps" target="_blank" rel="noreferrer" className="text-[#B8976A] underline">yandex.ru/maps</a> — правый клик по точке → «Что здесь?»</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Широта (Lat)</label>
+                    <input className={inputCls} value={form.mapLat} onChange={(e) => set("mapLat", e.target.value)} placeholder="55.7494" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Долгота (Lng)</label>
+                    <input className={inputCls} value={form.mapLng} onChange={(e) => set("mapLng", e.target.value)} placeholder="37.2219" />
+                  </div>
+                </div>
+                <div className="border border-[#E8D5BE] rounded-sm overflow-hidden">
+                  <iframe
+                    src={`https://yandex.ru/map-widget/v1/?ll=${form.mapLng}%2C${form.mapLat}&z=15&pt=${form.mapLng},${form.mapLat},pm2rdm&lang=ru_RU`}
+                    width="100%" height="260" style={{ border: 0, display: "block" }}
+                    allowFullScreen loading="lazy" title="Предпросмотр карты"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
                 <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Раздел «Как добраться»</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

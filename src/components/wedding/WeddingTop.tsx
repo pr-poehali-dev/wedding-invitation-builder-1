@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { HERO_IMAGE, NAV_ITEMS, Fade, SectionTitle } from "./wedding-shared";
+import { TEMPLATES, NAV_ITEMS, Fade, SectionTitle } from "./wedding-shared";
 import { useWedding } from "@/context/WeddingContext";
 
 const AUTH_KEY = "wedding_admin_auth";
@@ -17,6 +17,7 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
   const { data } = useWedding();
   const navigate = useNavigate();
   const isAdmin = localStorage.getItem(AUTH_KEY) === "true";
+  const tmpl = TEMPLATES.find((t) => t.id === data.tmplId) ?? TEMPLATES[0];
 
   const weddingDateLabel = new Date(data.weddingDate).toLocaleDateString("ru-RU", {
     day: "numeric", month: "long", year: "numeric",
@@ -80,8 +81,8 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
       {/* HERO */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={HERO_IMAGE} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-[#3D2B1F]/45" />
+          <img src={tmpl.heroImage} alt="" className="w-full h-full object-cover" />
+          <div className={`absolute inset-0 ${tmpl.overlayClass}`} />
         </div>
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <p className="text-[10px] tracking-[0.7em] text-white/65 font-montserrat uppercase mb-6 animate-fade-in" style={{ animationDelay: "0.3s", animationFillMode: "both" }}>

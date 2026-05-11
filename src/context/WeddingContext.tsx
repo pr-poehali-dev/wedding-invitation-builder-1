@@ -44,6 +44,8 @@ export interface WeddingData {
   mapBusText: string;
   footerTitle: string;
   footerSub: string;
+  mapLat: string;
+  mapLng: string;
 }
 
 const DEFAULTS: WeddingData = {
@@ -90,6 +92,8 @@ const DEFAULTS: WeddingData = {
   mapBusText: "Автобус от м. Строгино в 13:00. Бесплатно для гостей.",
   footerTitle: "До встречи на нашем торжестве",
   footerSub: "С любовью",
+  mapLat: "55.7494",
+  mapLng: "37.2219",
 };
 
 const STORAGE_KEY = "wedding_site_data";

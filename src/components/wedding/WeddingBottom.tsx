@@ -46,7 +46,7 @@ export default function WeddingBottom({
           <Fade delay={200}>
             <div className="border border-[#E8D5BE] rounded-sm overflow-hidden">
               <iframe
-                src="https://yandex.ru/map-widget/v1/?ll=37.2219%2C55.7494&z=12&pt=37.2219,55.7494,pm2rdm&lang=ru_RU"
+                src={`https://yandex.ru/map-widget/v1/?ll=${data.mapLng}%2C${data.mapLat}&z=15&pt=${data.mapLng},${data.mapLat},pm2rdm&lang=ru_RU`}
                 width="100%" height="420" style={{ border: 0, display: "block" }}
                 allowFullScreen loading="lazy" title="Карта" />
             </div>

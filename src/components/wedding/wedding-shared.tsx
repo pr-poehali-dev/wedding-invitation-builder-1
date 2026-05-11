@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from "react";
 export const HERO_IMAGE =
   "https://cdn.poehali.dev/projects/bbfcdec2-563b-424a-b59e-2b4a8785b859/files/3d50b3d3-f5bd-4172-b326-544619e05ab5.jpg";
 
+export const HERO_IMAGE_MINIMAL =
+  "https://cdn.poehali.dev/projects/bbfcdec2-563b-424a-b59e-2b4a8785b859/files/6ccf6cad-c0e0-49c0-9b64-fd5429916760.jpg";
+
 export const FONTS = [
   { id: "cormorant", name: "Cormorant", cls: "font-cormorant" },
   { id: "playfair", name: "Playfair", cls: "font-playfair" },
@@ -12,10 +15,10 @@ export const FONTS = [
 ];
 
 export const TEMPLATES = [
-  { id: "classic", name: "Классика", bg: "bg-white", border: "border-[#B8976A]", accent: "text-[#B8976A]", text: "text-[#3D2B1F]" },
-  { id: "minimal", name: "Минимал", bg: "bg-[#FAF7F2]", border: "border-[#4A4035]", accent: "text-[#4A4035]", text: "text-[#4A4035]" },
-  { id: "romantic", name: "Романтик", bg: "bg-[#FDF0F0]", border: "border-[#C9897A]", accent: "text-[#C9897A]", text: "text-[#3D2B1F]" },
-  { id: "nature", name: "Природа", bg: "bg-[#F0F4EE]", border: "border-[#7A9B6E]", accent: "text-[#7A9B6E]", text: "text-[#2D4A25]" },
+  { id: "classic", name: "Классика", bg: "bg-white", border: "border-[#B8976A]", accent: "text-[#B8976A]", text: "text-[#3D2B1F]", heroImage: HERO_IMAGE, overlayClass: "bg-[#3D2B1F]/45" },
+  { id: "minimal", name: "Минимал", bg: "bg-[#FAF7F2]", border: "border-[#4A4035]", accent: "text-[#4A4035]", text: "text-[#4A4035]", heroImage: HERO_IMAGE_MINIMAL, overlayClass: "bg-black/30" },
+  { id: "romantic", name: "Романтик", bg: "bg-[#FDF0F0]", border: "border-[#C9897A]", accent: "text-[#C9897A]", text: "text-[#3D2B1F]", heroImage: HERO_IMAGE, overlayClass: "bg-[#3D2B1F]/45" },
+  { id: "nature", name: "Природа", bg: "bg-[#F0F4EE]", border: "border-[#7A9B6E]", accent: "text-[#7A9B6E]", text: "text-[#2D4A25]", heroImage: HERO_IMAGE, overlayClass: "bg-[#2D4A25]/45" },
 ];
 
 export const SURVEYS = [
