@@ -9,6 +9,45 @@ import urllib.request
 import urllib.error
 
 
+def _sign(key_bytes: bytes, msg: str) -> bytes:
+    return hmac.HMAC(key_bytes, msg.encode("utf-8"), hashlib.sha256).digest()
+
+
+def _make_authorization(access_key: str, secret_key: str, method: str,
+                        bucket: str, key: str, host: str, region: str,
+                        payload_hash: str, content_type: str,
+                        amzdate: str, datestamp: str) -> str:
+    canonical_uri = f"/{bucket}/{key}"
+    canonical_headers = (
+        f"content-type:{content_type}\n"
+        f"host:{host}\n"
+        f"x-amz-content-sha256:{payload_hash}\n"
+        f"x-amz-date:{amzdate}\n"
+    )
+    signed_headers = "content-type;host;x-amz-content-sha256;x-amz-date"
+    canonical_request = "\n".join([
+        method, canonical_uri, "",
+        canonical_headers, signed_headers, payload_hash,
+    ])
+
+    credential_scope = f"{datestamp}/{region}/s3/aws4_request"
+    string_to_sign = "\n".join([
+        "AWS4-HMAC-SHA256", amzdate, credential_scope,
+        hashlib.sha256(canonical_request.encode("utf-8")).hexdigest(),
+    ])
+
+    k_date = _sign(("AWS4" + secret_key).encode("utf-8"), datestamp)
+    k_region = _sign(k_date, region)
+    k_service = _sign(k_region, "s3")
+    k_signing = _sign(k_service, "aws4_request")
+    signature = hmac.HMAC(k_signing, string_to_sign.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    return (
+        f"AWS4-HMAC-SHA256 Credential={access_key}/{credential_scope}, "
+        f"SignedHeaders={signed_headers}, Signature={signature}"
+    )
+
+
 def handler(event: dict, context) -> dict:
     """Загрузка аудиофайла в S3 для фоновой музыки свадебного сайта"""
     if event.get("httpMethod") == "OPTIONS":
@@ -53,39 +92,11 @@ def handler(event: dict, context) -> dict:
     t = datetime.datetime.utcnow()
     amzdate = t.strftime("%Y%m%dT%H%M%SZ")
     datestamp = t.strftime("%Y%m%d")
-
     payload_hash = hashlib.sha256(audio_bytes).hexdigest()
-    canonical_uri = f"/{bucket}/{key}"
-    canonical_headers = (
-        f"content-type:{content_type}\n"
-        f"host:{host}\n"
-        f"x-amz-content-sha256:{payload_hash}\n"
-        f"x-amz-date:{amzdate}\n"
-    )
-    signed_headers = "content-type;host;x-amz-content-sha256;x-amz-date"
-    canonical_request = "\n".join([
-        "PUT", canonical_uri, "",
-        canonical_headers, signed_headers, payload_hash,
-    ])
 
-    credential_scope = f"{datestamp}/{region}/s3/aws4_request"
-    string_to_sign = "\n".join([
-        "AWS4-HMAC-SHA256", amzdate, credential_scope,
-        hashlib.sha256(canonical_request.encode()).hexdigest(),
-    ])
-
-    def sign(key_bytes, msg):
-        return hmac.new(key_bytes, msg.encode(), hashlib.sha256).digest()
-
-    k_date = sign(("AWS4" + secret_key).encode(), datestamp)
-    k_region = sign(k_date, region)
-    k_service = sign(k_region, "s3")
-    k_signing = sign(k_service, "aws4_request")
-    signature = hmac.new(k_signing, string_to_sign.encode(), hashlib.sha256).hexdigest()
-
-    authorization = (
-        f"AWS4-HMAC-SHA256 Credential={access_key}/{credential_scope}, "
-        f"SignedHeaders={signed_headers}, Signature={signature}"
+    authorization = _make_authorization(
+        access_key, secret_key, "PUT", bucket, key, host, region,
+        payload_hash, content_type, amzdate, datestamp
     )
 
     url = f"https://{host}/{bucket}/{key}"
@@ -102,6 +113,7 @@ def handler(event: dict, context) -> dict:
             resp.read()
     except urllib.error.HTTPError as e:
         err_body = e.read().decode()
+        print(f"S3 upload error {e.code}: {err_body}")
         return {
             "statusCode": 500,
             "headers": {"Access-Control-Allow-Origin": "*"},
@@ -109,6 +121,7 @@ def handler(event: dict, context) -> dict:
         }
 
     cdn_url = f"https://cdn.poehali.dev/projects/{access_key}/bucket/{key}"
+    print(f"Uploaded audio: {cdn_url}")
 
     return {
         "statusCode": 200,
