@@ -181,11 +181,13 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
             <div className="mt-9 bg-white border border-[#E8D5BE] p-8 text-center max-w-xl mx-auto rounded-sm" style={{ boxShadow: "0 4px 40px rgba(61,43,31,0.06)" }}>
               <p className="text-[10px] tracking-[0.35em] text-[#B8976A] font-montserrat uppercase mb-2">Дресс-код</p>
               <p className="text-sm text-[#9B8878] font-montserrat leading-relaxed">{data.dressCode}</p>
-              <div className="flex gap-2 justify-center mt-5">
-                {["#FAF7F2","#E8C4B0","#C9897A","#B8976A","#7A9B6E","#9B8878"].map(c => (
-                  <div key={c} className="w-6 h-6 rounded-full border border-[#E8D5BE]" style={{ backgroundColor: c }} />
-                ))}
-              </div>
+              {(data.dressCodeColors || []).length > 0 && (
+                <div className="flex gap-2 justify-center mt-5 flex-wrap">
+                  {(data.dressCodeColors || []).map((c, i) => (
+                    <div key={i} className="w-6 h-6 rounded-full border border-[#E8D5BE]" style={{ backgroundColor: c }} title={c} />
+                  ))}
+                </div>
+              )}
             </div>
           </Fade>
         </div>

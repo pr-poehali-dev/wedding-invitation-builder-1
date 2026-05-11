@@ -253,6 +253,44 @@ export default function AdminPanel() {
                 <label className={labelCls}>Дресс-код</label>
                 <textarea rows={3} className={inputCls + " resize-none"} value={form.dressCode}
                   onChange={(e) => set("dressCode", e.target.value)} />
+                <div className="mt-3">
+                  <p className="text-[10px] font-montserrat text-[#9B8878] uppercase tracking-wider mb-2">Цвета дресс-кода (до 8 штук)</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {(form.dressCodeColors || []).map((color, i) => (
+                      <div key={i} className="relative group">
+                        <input
+                          type="color"
+                          value={color}
+                          onChange={(e) => {
+                            const updated = [...(form.dressCodeColors || [])];
+                            updated[i] = e.target.value;
+                            setForm((f) => ({ ...f, dressCodeColors: updated }));
+                          }}
+                          className="w-9 h-9 rounded-full border-2 border-[#E8D5BE] cursor-pointer appearance-none p-0.5 bg-transparent"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (form.dressCodeColors || []).filter((_, j) => j !== i);
+                            setForm((f) => ({ ...f, dressCodeColors: updated }));
+                          }}
+                          className="absolute -top-1 -right-1 w-4 h-4 bg-[#C9897A] text-white rounded-full text-[9px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >×</button>
+                      </div>
+                    ))}
+                    {(form.dressCodeColors || []).length < 8 && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, dressCodeColors: [...(f.dressCodeColors || []), "#E8C4B0"] }))}
+                        className="w-9 h-9 rounded-full border-2 border-dashed border-[#B8976A] flex items-center justify-center text-[#B8976A] text-lg hover:bg-[#B8976A]/10 transition-colors"
+                        title="Добавить цвет"
+                      >+</button>
+                    )}
+                  </div>
+                  <p className="text-[10px] font-montserrat text-[#C9897A]/70">Нажмите на кружок, чтобы изменить цвет. Наведите — появится кнопка удаления.</p>
+                </div>
               </div>
             </div>
           )}

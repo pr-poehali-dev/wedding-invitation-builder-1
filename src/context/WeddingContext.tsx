@@ -15,6 +15,7 @@ export interface WeddingData {
   tmplId: string;
   fontId: string;
   dressCode: string;
+  dressCodeColors: string[];
   contactGroom: string;
   contactBride: string;
   contactHost: string;
@@ -38,6 +39,7 @@ const DEFAULTS: WeddingData = {
   tmplId: "classic",
   fontId: "cormorant",
   dressCode: "Торжественный. Пожалуйста, воздержитесь от белого. Приветствуются пастельные, нежные оттенки.",
+  dressCodeColors: ["#FAF7F2", "#E8C4B0", "#C9897A", "#B8976A", "#7A9B6E", "#9B8878"],
   contactGroom: "+7 (999) 123-45-67",
   contactBride: "+7 (999) 765-43-21",
   contactHost: "+7 (916) 555-00-11",
@@ -77,6 +79,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         ...DEFAULTS,
         ...parsed,
         galleryPhotos: Array.isArray(parsed.galleryPhotos) ? parsed.galleryPhotos : [],
+        dressCodeColors: Array.isArray(parsed.dressCodeColors) ? parsed.dressCodeColors : DEFAULTS.dressCodeColors,
         timelineTitles: Array.isArray(parsed.timelineTitles) ? parsed.timelineTitles : DEFAULTS.timelineTitles,
         timelineTexts: Array.isArray(parsed.timelineTexts) ? parsed.timelineTexts : DEFAULTS.timelineTexts,
         timelineYears: Array.isArray(parsed.timelineYears) ? parsed.timelineYears : DEFAULTS.timelineYears,
