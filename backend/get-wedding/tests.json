@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Get wedding data",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 404
+    }
+  ]
+}

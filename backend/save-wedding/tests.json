@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Save wedding forbidden without token",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 403
+    }
+  ]
+}

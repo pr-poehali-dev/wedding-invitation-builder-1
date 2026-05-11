@@ -12,10 +12,15 @@ const REG_KEY = "wedding_reg_list";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const { data, setData } = useWedding();
+  const { data, saveData, loading } = useWedding();
   const [tab, setTab] = useState<Tab>("general");
   const [form, setForm] = useState<WeddingData>({ ...data });
+
+  useEffect(() => {
+    if (!loading) setForm({ ...data });
+  }, [loading]);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,10 +43,16 @@ export default function AdminPanel() {
     navigate("/admin");
   };
 
-  const handleSave = () => {
-    setData(form);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const handleSave = async () => {
+    setSaveError("");
+    const token = localStorage.getItem("wedding_admin_token") || "";
+    try {
+      await saveData(form, token);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      setSaveError("Ошибка сохранения. Проверьте подключение.");
+    }
   };
 
   const set = (key: keyof WeddingData, value: string) =>
@@ -734,8 +745,8 @@ export default function AdminPanel() {
           )}
 
           {/* Save button */}
-          {tab !== "rsvp_answers" && tab !== "photos" && tab !== "music" && (
-            <div className="mt-8 flex items-center gap-4">
+          {tab !== "registrations" && tab !== "photos" && tab !== "music" && (
+            <div className="mt-8 flex items-center gap-4 flex-wrap">
               <button onClick={handleSave}
                 className="px-8 py-3 bg-[#3D2B1F] text-[#FAF7F2] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#4A4035] transition-colors rounded-sm flex items-center gap-2">
                 <Icon name="Save" size={14} />
@@ -746,6 +757,9 @@ export default function AdminPanel() {
                   <Icon name="CheckCircle" size={14} />
                   Сохранено!
                 </span>
+              )}
+              {saveError && (
+                <span className="text-xs text-red-500 font-montserrat">{saveError}</span>
               )}
             </div>
           )}

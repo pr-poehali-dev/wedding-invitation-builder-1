@@ -21,6 +21,7 @@ export default function AdminLogin() {
     setTimeout(() => {
       if (login === ADMIN_LOGIN && password === ADMIN_PASSWORD) {
         localStorage.setItem(AUTH_KEY, "true");
+        localStorage.setItem("wedding_admin_token", password);
         navigate("/admin/panel");
       } else {
         setError("Неверный логин или пароль");

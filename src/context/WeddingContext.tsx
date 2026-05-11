@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 type Template = typeof TEMPLATES[number];
@@ -27,7 +27,6 @@ export interface WeddingData {
   galleryPhotos: string[];
   audioUrl: string;
   audioName: string;
-  // Texts
   heroTagline: string;
   heroBtn: string;
   storyTitle: string;
@@ -48,7 +47,7 @@ export interface WeddingData {
   mapLng: string;
 }
 
-const DEFAULTS: WeddingData = {
+export const DEFAULTS: WeddingData = {
   groomName: "Александр",
   brideName: "Мария",
   weddingDate: "2026-09-12T14:00:00",
@@ -96,51 +95,76 @@ const DEFAULTS: WeddingData = {
   mapLng: "37.2219",
 };
 
-const STORAGE_KEY = "wedding_site_data";
+const GET_URL = "https://functions.poehali.dev/cf831fbe-7593-4252-b588-6e67d1d9e3f5";
+const SAVE_URL = "https://functions.poehali.dev/a20d2510-dbb5-48dd-9faf-c45e0a14bc04";
+
+function mergeWithDefaults(parsed: Partial<WeddingData>): WeddingData {
+  return {
+    ...DEFAULTS,
+    ...parsed,
+    galleryPhotos: Array.isArray(parsed.galleryPhotos) ? parsed.galleryPhotos : [],
+    dressCodeColors: Array.isArray(parsed.dressCodeColors) ? parsed.dressCodeColors : DEFAULTS.dressCodeColors,
+    programLines: Array.isArray(parsed.programLines) ? parsed.programLines : DEFAULTS.programLines,
+    timelineTitles: Array.isArray(parsed.timelineTitles) ? parsed.timelineTitles : DEFAULTS.timelineTitles,
+    timelineTexts: Array.isArray(parsed.timelineTexts) ? parsed.timelineTexts : DEFAULTS.timelineTexts,
+    timelineYears: Array.isArray(parsed.timelineYears) ? parsed.timelineYears : DEFAULTS.timelineYears,
+    audioUrl: parsed.audioUrl ?? "",
+    audioName: parsed.audioName ?? "",
+  };
+}
 
 interface WeddingContextValue {
   data: WeddingData;
   setData: (d: WeddingData) => void;
+  saveData: (d: WeddingData, adminPassword: string) => Promise<void>;
   tmpl: Template;
   font: Font;
+  loading: boolean;
 }
 
 const WeddingContext = createContext<WeddingContextValue | null>(null);
 
 export function WeddingProvider({ children }: { children: ReactNode }) {
-  const [data, setDataState] = useState<WeddingData>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return DEFAULTS;
-      const parsed = JSON.parse(saved);
-      // Ensure array fields are always arrays (backward compat with old localStorage)
-      return {
-        ...DEFAULTS,
-        ...parsed,
-        galleryPhotos: Array.isArray(parsed.galleryPhotos) ? parsed.galleryPhotos : [],
-        dressCodeColors: Array.isArray(parsed.dressCodeColors) ? parsed.dressCodeColors : DEFAULTS.dressCodeColors,
-        programLines: Array.isArray(parsed.programLines) ? parsed.programLines : DEFAULTS.programLines,
-        timelineTitles: Array.isArray(parsed.timelineTitles) ? parsed.timelineTitles : DEFAULTS.timelineTitles,
-        timelineTexts: Array.isArray(parsed.timelineTexts) ? parsed.timelineTexts : DEFAULTS.timelineTexts,
-        timelineYears: Array.isArray(parsed.timelineYears) ? parsed.timelineYears : DEFAULTS.timelineYears,
-        audioUrl: parsed.audioUrl ?? "",
-        audioName: parsed.audioName ?? "",
-      };
-    } catch {
-      return DEFAULTS;
-    }
-  });
+  const [data, setDataState] = useState<WeddingData>(DEFAULTS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(GET_URL)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json && !json.error) {
+          setDataState(mergeWithDefaults(json));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const setData = (d: WeddingData) => {
     setDataState(d);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+  };
+
+  const saveData = async (d: WeddingData, adminPassword: string): Promise<void> => {
+    setDataState(d);
+    const res = await fetch(SAVE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Token': adminPassword,
+      },
+      body: JSON.stringify(d),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'save_failed');
+    }
   };
 
   const tmpl = TEMPLATES.find((t) => t.id === data.tmplId) ?? TEMPLATES[0];
   const font = FONTS.find((f) => f.id === data.fontId) ?? FONTS[0];
 
   return (
-    <WeddingContext.Provider value={{ data, setData, tmpl, font }}>
+    <WeddingContext.Provider value={{ data, setData, saveData, tmpl, font, loading }}>
       {children}
     </WeddingContext.Provider>
   );

@@ -7,7 +7,7 @@ import Icon from "@/components/ui/icon";
 import { useWedding } from "@/context/WeddingContext";
 
 export default function Index() {
-  const { data } = useWedding();
+  const { data, loading } = useWedding();
   const [navOpen, setNavOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("hero");
   const [regDone, setRegDone] = useState(false);
@@ -113,6 +113,17 @@ export default function Index() {
     setActiveNav(id);
     setNavOpen(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-[#B8976A] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[10px] tracking-[0.4em] text-[#9B8878] font-montserrat uppercase">Загрузка</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] relative overflow-x-hidden">
