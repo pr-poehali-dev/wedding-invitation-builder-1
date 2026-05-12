@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
-const ADMIN_LOGIN = "admin";
-const ADMIN_PASSWORD = "123456";
 const AUTH_KEY = "wedding_admin_auth";
+const CHECK_URL = "https://functions.poehali.dev/a20d2510-dbb5-48dd-9faf-c45e0a14bc04";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -14,20 +13,34 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    setTimeout(() => {
-      if (login === ADMIN_LOGIN && password === ADMIN_PASSWORD) {
-        localStorage.setItem(AUTH_KEY, "true");
-        localStorage.setItem("wedding_admin_token", password);
-        navigate("/admin/panel");
-      } else {
-        setError("Неверный логин или пароль");
+    try {
+      // Пробуем сохранить пустой ping — если пароль верный, сервер ответит 200
+      const res = await fetch(CHECK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Token": password },
+        body: JSON.stringify({ __ping: true }),
+      });
+      if (res.status === 403) {
+        setError("Неверный пароль");
         setLoading(false);
+        return;
       }
-    }, 600);
+      if (!res.ok) {
+        setError("Сервер недоступен. Попробуйте позже.");
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem(AUTH_KEY, "true");
+      localStorage.setItem("wedding_admin_token", password);
+      navigate("/admin/panel");
+    } catch {
+      setError("Ошибка сети. Проверьте соединение.");
+      setLoading(false);
+    }
   };
 
   return (

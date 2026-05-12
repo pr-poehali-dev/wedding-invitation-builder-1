@@ -21,6 +21,15 @@ def handler(event: dict, context) -> dict:
         }
 
     body = json.loads(event.get('body') or '{}')
+
+    # Пинг для проверки пароля без записи
+    if body.get('__ping'):
+        return {
+            'statusCode': 200,
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'ok': True})
+        }
+
     data_json = json.dumps(body, ensure_ascii=False)
 
     conn = psycopg2.connect(os.environ['DATABASE_URL'])

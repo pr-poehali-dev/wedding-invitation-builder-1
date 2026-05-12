@@ -103,47 +103,49 @@ export default function AdminPanel() {
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 50 * 1024 * 1024) {
-      setAudioError("Файл слишком большой. Максимум 50 МБ.");
+    if (file.size > 5 * 1024 * 1024) {
+      setAudioError("Файл слишком большой. Максимум 5 МБ — сожмите mp3 до 96–128 kbps.");
       return;
     }
     setAudioUploading(true);
     setAudioError("");
     setAudioProgress(0);
     try {
-      // Получаем presigned URL
-      const presignRes = await fetch("https://functions.poehali.dev/66da2b79-7e31-4e71-acfa-d2454958f969", {
+      const base64: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onprogress = (ev) => {
+          if (ev.lengthComputable) setAudioProgress(Math.round((ev.loaded / ev.total) * 40));
+        };
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("read_failed"));
+        reader.readAsDataURL(file);
+      });
+      setAudioProgress(50);
+
+      const res = await fetch("https://functions.poehali.dev/18daacfc-1a6d-4c48-a94b-c95011bcd933", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+        body: JSON.stringify({ audio: base64, contentType: file.type, filename: file.name }),
       });
-      if (!presignRes.ok) throw new Error("presign_failed");
-      const { uploadUrl, cdnUrl } = await presignRes.json();
-      setAudioProgress(10);
+      setAudioProgress(95);
 
-      // Загружаем файл напрямую в S3 с отслеживанием прогресса
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.upload.onprogress = (ev) => {
-          if (ev.lengthComputable) setAudioProgress(10 + Math.round((ev.loaded / ev.total) * 88));
-        };
-        xhr.onload = () => xhr.status < 300 ? resolve() : reject(new Error(`s3_${xhr.status}`));
-        xhr.onerror = () => reject(new Error("network"));
-        xhr.send(file);
-      });
-
+      if (!res.ok) {
+        if (res.status === 413) setAudioError("Файл слишком большой. Сожмите mp3 (до ~3 МБ).");
+        else setAudioError(`Ошибка сервера (${res.status}). Попробуйте ещё раз.`);
+        return;
+      }
+      const json = await res.json().catch(() => ({} as { url?: string; error?: string }));
+      if (!json.url) {
+        setAudioError(json.error || "Ошибка загрузки. Попробуйте ещё раз.");
+        return;
+      }
       setAudioProgress(100);
-      const updated = { ...form, audioUrl: cdnUrl, audioName: file.name };
+      const updated = { ...form, audioUrl: json.url, audioName: file.name };
       setForm(updated);
       setData(updated);
       await persist(updated);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "";
-      if (msg === "presign_failed") setAudioError("Не удалось подготовить загрузку. Попробуйте ещё раз.");
-      else if (msg.startsWith("s3_")) setAudioError(`Ошибка загрузки в хранилище (${msg}). Попробуйте ещё раз.`);
-      else setAudioError("Ошибка сети. Проверьте соединение и попробуйте ещё раз.");
+    } catch {
+      setAudioError("Ошибка сети. Возможно, файл слишком большой — сожмите mp3 до 3 МБ.");
     } finally {
       setAudioUploading(false);
       if (audioInputRef.current) audioInputRef.current.value = "";
