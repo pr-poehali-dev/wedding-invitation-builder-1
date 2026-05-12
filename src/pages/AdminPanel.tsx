@@ -12,7 +12,7 @@ const REG_KEY = "wedding_reg_list";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const { data, saveData, loading } = useWedding();
+  const { data, saveData, setData, loading } = useWedding();
   const [tab, setTab] = useState<Tab>("general");
   const [form, setForm] = useState<WeddingData>({ ...data });
 
