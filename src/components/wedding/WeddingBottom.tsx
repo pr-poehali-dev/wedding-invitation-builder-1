@@ -32,11 +32,10 @@ export default function WeddingBottom({
       <section id="map" className="py-24 px-6 bg-[#F5F0E8]">
         <div className="max-w-5xl mx-auto">
           <Fade><SectionTitle title="Карта" sub="Как добраться" /></Fade>
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 gap-6 mb-8 max-w-2xl mx-auto">
             {[
               { icon: "Car", title: data.mapCarTitle, text: data.mapCarText },
               { icon: "Train", title: data.mapTrainTitle, text: data.mapTrainText },
-              { icon: "Bus", title: data.mapBusTitle, text: data.mapBusText },
             ].map((c, i) => (
               <Fade key={c.title} delay={i * 100}>
                 <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm text-center" style={{ boxShadow: "0 4px 30px rgba(61,43,31,0.05)" }}>
