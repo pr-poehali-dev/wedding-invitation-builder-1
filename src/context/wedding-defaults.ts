@@ -25,6 +25,10 @@ export interface WeddingData {
   heroBtn: string;
   storyTitle: string;
   storySub: string;
+  quoteTitle: string;
+  quoteSub: string;
+  quoteText: string;
+  quoteAuthor: string;
   detailsTitle: string;
   detailsSub: string;
   programLines: string[];
@@ -74,6 +78,10 @@ export const WEDDING_DEFAULTS: WeddingData = {
   heroBtn: "Подтвердить присутствие",
   storyTitle: "Наша история",
   storySub: "Как всё началось",
+  quoteTitle: "Слова, которые с нами",
+  quoteSub: "Цитата дня",
+  quoteText: "Любовь — это единственное, что растёт по мере того, как мы его расточаем.",
+  quoteAuthor: "Антуан де Сент-Экзюпери",
   detailsTitle: "Детали события",
   detailsSub: "Что нужно знать",
   programLines: ["14:00 — Церемония", "15:30 — Банкет", "23:00 — Окончание"],

@@ -23,12 +23,6 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
     day: "numeric", month: "long", year: "numeric",
   });
 
-  const timeline = data.timelineTitles.map((title, i) => ({
-    year: data.timelineYears[i] ?? "",
-    title,
-    text: data.timelineTexts[i] ?? "",
-  }));
-
   return (
     <>
       {/* NAV */}
@@ -124,26 +118,24 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
         </div>
       </section>
 
-      {/* STORY */}
-      <section id="story" className="py-24 px-6 bg-[#FAF7F2]">
-        <div className="max-w-4xl mx-auto">
-          <Fade><SectionTitle title={data.storyTitle} sub={data.storySub} /></Fade>
-          <div className="relative">
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#B8976A]/40 to-transparent hidden md:block" />
-            {timeline.map((item, i) => (
-              <Fade key={item.year + i} delay={i * 120}>
-                <div className={`flex items-start gap-8 mb-12 ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                  <div className={`flex-1 ${i % 2 === 0 ? "md:text-right" : "md:text-left"}`}>
-                    <span className="text-[10px] tracking-[0.35em] text-[#B8976A] font-montserrat uppercase">{item.year}</span>
-                    <h3 className="font-cormorant text-2xl font-medium text-[#3D2B1F] mt-1 mb-2">{item.title}</h3>
-                    <p className="text-sm text-[#9B8878] leading-relaxed font-montserrat">{item.text}</p>
-                  </div>
-                  <div className="hidden md:block w-3 h-3 rounded-full bg-[#B8976A] mt-2 shrink-0 relative z-10" />
-                  <div className="flex-1 hidden md:block" />
-                </div>
-              </Fade>
-            ))}
-          </div>
+      {/* QUOTE */}
+      <section id="story" className="py-28 px-6 bg-[#FAF7F2] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, #B8976A 0%, transparent 40%), radial-gradient(circle at 80% 70%, #C9897A 0%, transparent 40%)" }} />
+        <div className="max-w-3xl mx-auto relative">
+          <Fade><SectionTitle title={data.quoteTitle} sub={data.quoteSub} /></Fade>
+          <Fade delay={150}>
+            <div className="text-center px-4">
+              <div className="font-cormorant text-[80px] md:text-[110px] leading-none text-[#B8976A]/30 select-none -mb-8">“</div>
+              <p className="font-cormorant italic text-2xl md:text-3xl text-[#3D2B1F] leading-relaxed font-light max-w-2xl mx-auto">
+                {data.quoteText}
+              </p>
+              <div className="flex items-center justify-center gap-4 mt-9">
+                <div className="w-10 h-px bg-[#B8976A]/50" />
+                <p className="text-[10px] tracking-[0.4em] text-[#B8976A] font-montserrat uppercase">{data.quoteAuthor}</p>
+                <div className="w-10 h-px bg-[#B8976A]/50" />
+              </div>
+            </div>
+          </Fade>
         </div>
       </section>
 

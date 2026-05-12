@@ -42,7 +42,7 @@ export const TRACKS = [
 
 export const NAV_ITEMS = [
   { id: "hero", label: "Главная" },
-  { id: "story", label: "История" },
+  { id: "story", label: "Цитата" },
   { id: "details", label: "Детали" },
   { id: "notes", label: "Примечания" },
   { id: "rsvp", label: "Регистрация" },

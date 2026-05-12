@@ -150,19 +150,13 @@ export default function AdminPanel() {
     setData(updated);
   };
 
-  const setTimelineField = (field: "timelineTitles" | "timelineTexts" | "timelineYears", idx: number, value: string) => {
-    const arr = [...form[field]];
-    arr[idx] = value;
-    setForm((f) => ({ ...f, [field]: arr }));
-  };
-
   const inputCls = "w-full px-3 py-2.5 border border-[#E8D5BE] bg-white text-sm text-[#4A4035] font-montserrat focus:outline-none focus:border-[#B8976A] rounded-sm transition-colors";
   const labelCls = "block text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase mb-1.5";
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: "general", label: "Общее", icon: "Settings" },
     { id: "texts", label: "Тексты", icon: "Type" },
-    { id: "story", label: "История", icon: "BookOpen" },
+    { id: "story", label: "Цитата", icon: "Quote" },
     { id: "details", label: "Детали", icon: "Calendar" },
     { id: "contacts", label: "Контакты", icon: "Phone" },
     { id: "notes", label: "Примечания", icon: "StickyNote" },
@@ -247,16 +241,24 @@ export default function AdminPanel() {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Раздел «История»</h3>
+                <h3 className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase border-b border-[#E8D5BE] pb-2">Раздел «Цитата»</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelCls}>Заголовок</label>
-                    <input className={inputCls} value={form.storyTitle} onChange={(e) => set("storyTitle", e.target.value)} />
+                    <input className={inputCls} value={form.quoteTitle} onChange={(e) => set("quoteTitle", e.target.value)} />
                   </div>
                   <div>
                     <label className={labelCls}>Подзаголовок</label>
-                    <input className={inputCls} value={form.storySub} onChange={(e) => set("storySub", e.target.value)} />
+                    <input className={inputCls} value={form.quoteSub} onChange={(e) => set("quoteSub", e.target.value)} />
                   </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Текст цитаты</label>
+                  <textarea className={`${inputCls} min-h-[90px]`} value={form.quoteText} onChange={(e) => set("quoteText", e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelCls}>Автор</label>
+                  <input className={inputCls} value={form.quoteAuthor} onChange={(e) => set("quoteAuthor", e.target.value)} />
                 </div>
               </div>
 
@@ -462,33 +464,32 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* STORY */}
+          {/* QUOTE */}
           {tab === "story" && (
             <div className="space-y-6">
-              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Наша история</h2>
-              {form.timelineTitles.map((_, i) => (
-                <div key={i} className="bg-white border border-[#E8D5BE] p-5 rounded-sm space-y-3"
-                  style={{ boxShadow: "0 2px 20px rgba(61,43,31,0.04)" }}>
-                  <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase">Событие {i + 1}</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className={labelCls}>Год</label>
-                      <input className={inputCls} value={form.timelineYears[i]}
-                        onChange={(e) => setTimelineField("timelineYears", i, e.target.value)} />
-                    </div>
-                    <div className="col-span-2">
-                      <label className={labelCls}>Название</label>
-                      <input className={inputCls} value={form.timelineTitles[i]}
-                        onChange={(e) => setTimelineField("timelineTitles", i, e.target.value)} />
-                    </div>
+              <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Цитата дня</h2>
+              <p className="text-xs text-[#9B8878] font-montserrat">Красивая цитата, которая встретит гостей на сайте.</p>
+              <div className="bg-white border border-[#E8D5BE] p-5 rounded-sm space-y-4"
+                style={{ boxShadow: "0 2px 20px rgba(61,43,31,0.04)" }}>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Заголовок раздела</label>
+                    <input className={inputCls} value={form.quoteTitle} onChange={(e) => set("quoteTitle", e.target.value)} />
                   </div>
                   <div>
-                    <label className={labelCls}>Описание</label>
-                    <textarea rows={2} className={inputCls + " resize-none"} value={form.timelineTexts[i]}
-                      onChange={(e) => setTimelineField("timelineTexts", i, e.target.value)} />
+                    <label className={labelCls}>Подзаголовок</label>
+                    <input className={inputCls} value={form.quoteSub} onChange={(e) => set("quoteSub", e.target.value)} />
                   </div>
                 </div>
-              ))}
+                <div>
+                  <label className={labelCls}>Текст цитаты</label>
+                  <textarea rows={3} className={inputCls + " resize-none"} value={form.quoteText} onChange={(e) => set("quoteText", e.target.value)} />
+                </div>
+                <div>
+                  <label className={labelCls}>Автор</label>
+                  <input className={inputCls} value={form.quoteAuthor} onChange={(e) => set("quoteAuthor", e.target.value)} />
+                </div>
+              </div>
             </div>
           )}
 
