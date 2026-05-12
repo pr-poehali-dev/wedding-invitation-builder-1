@@ -8,14 +8,27 @@ def handler(event: dict, context) -> dict:
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400'}, 'body': ''}
 
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    cur = conn.cursor()
-    cur.execute("SELECT data FROM wedding_data WHERE site_id = 'main' LIMIT 1")
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-
-    data = row[0] if row else {}
+    conn = None
+    data = {}
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute("SELECT data FROM wedding_data WHERE site_id = 'main' LIMIT 1")
+        row = cur.fetchone()
+        cur.close()
+        data = row[0] if row else {}
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'db_error', 'detail': str(e)[:200]})
+        }
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     return {
         'statusCode': 200,

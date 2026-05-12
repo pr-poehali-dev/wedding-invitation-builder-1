@@ -20,61 +20,78 @@ export default function Index() {
   const [showMusicBanner, setShowMusicBanner] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const wedding = new Date(data.weddingDate);
-
-  // Countdown
+  // Countdown — корректная обработка невалидной даты + сразу первый тик
   useEffect(() => {
-    const t = setInterval(() => {
-      const diff = wedding.getTime() - Date.now();
-      if (diff > 0) setCd({
-        d: Math.floor(diff / 86400000),
-        h: Math.floor((diff % 86400000) / 3600000),
-        m: Math.floor((diff % 3600000) / 60000),
-        s: Math.floor((diff % 60000) / 1000),
-      });
-    }, 1000);
+    const target = new Date(data.weddingDate).getTime();
+    if (!Number.isFinite(target)) {
+      setCd({ d: 0, h: 0, m: 0, s: 0 });
+      return;
+    }
+    const tick = () => {
+      const diff = target - Date.now();
+      if (diff > 0) {
+        setCd({
+          d: Math.floor(diff / 86400000),
+          h: Math.floor((diff % 86400000) / 3600000),
+          m: Math.floor((diff % 3600000) / 60000),
+          s: Math.floor((diff % 60000) / 1000),
+        });
+      } else {
+        setCd({ d: 0, h: 0, m: 0, s: 0 });
+      }
+    };
+    tick();
+    const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, [data.weddingDate]);
 
-  // Update audio src when custom track changes
+  // Audio setup — единый эффект, реагирует на смену audioUrl
   useEffect(() => {
-    if (!audioRef.current) return;
-    const audio = audioRef.current;
-    const wasPl = !audio.paused;
-    if (data.audioUrl) {
-      audio.src = data.audioUrl;
-    } else {
-      audio.src = "";
+    if (!audioRef.current) {
+      const a = new Audio();
+      a.loop = true;
+      a.volume = volume / 100;
+      audioRef.current = a;
     }
-    if (wasPl && data.audioUrl) audio.play().catch(() => {});
-  }, [data.audioUrl]);
-
-  // Audio setup — tries autoplay, shows banner if blocked
-  useEffect(() => {
-    const audio = new Audio();
-    audio.loop = true;
-    audio.volume = volume / 100;
-    if (data.audioUrl) audio.src = data.audioUrl;
-    audioRef.current = audio;
-
-    const tryAutoplay = async () => {
-      if (!audio.src) {
-        setShowMusicBanner(false);
-        return;
+    const audio = audioRef.current;
+    if (data.audioUrl) {
+      if (audio.src !== data.audioUrl) {
+        audio.src = data.audioUrl;
       }
+    } else {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      setPlaying(false);
+      setShowMusicBanner(false);
+      return;
+    }
+
+    let cancelled = false;
+    const tryAutoplay = async () => {
       try {
         await audio.play();
-        setPlaying(true);
-        setMusicUnlocked(true);
+        if (!cancelled) {
+          setPlaying(true);
+          setMusicUnlocked(true);
+          setShowMusicBanner(false);
+        }
       } catch {
-        setShowMusicBanner(true);
+        if (!cancelled && !musicUnlocked) setShowMusicBanner(true);
       }
     };
-
-    const timer = setTimeout(tryAutoplay, 1500);
+    const timer = setTimeout(tryAutoplay, 1200);
     return () => {
+      cancelled = true;
       clearTimeout(timer);
-      audio.pause();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.audioUrl]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
     };
   }, []);
 

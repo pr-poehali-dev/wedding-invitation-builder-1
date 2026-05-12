@@ -72,9 +72,24 @@ export default function AdminPanel() {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Можно загружать только изображения (JPG, PNG, WebP).");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError("Фото слишком большое. Максимум 10 МБ.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
     setPhotoUploading(true);
     setPhotoError("");
     const reader = new FileReader();
+    reader.onerror = () => {
+      setPhotoError("Не удалось прочитать файл. Попробуйте другое фото.");
+      setPhotoUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
     reader.onload = async () => {
       const base64 = reader.result as string;
       try {

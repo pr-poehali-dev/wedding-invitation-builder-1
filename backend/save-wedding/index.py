@@ -20,7 +20,14 @@ def handler(event: dict, context) -> dict:
             'body': json.dumps({'error': 'forbidden'})
         }
 
-    body = json.loads(event.get('body') or '{}')
+    try:
+        body = json.loads(event.get('body') or '{}')
+    except (json.JSONDecodeError, ValueError):
+        return {
+            'statusCode': 400,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'invalid_json'})
+        }
 
     # Пинг для проверки пароля без записи
     if body.get('__ping'):
@@ -32,22 +39,40 @@ def handler(event: dict, context) -> dict:
 
     data_json = json.dumps(body, ensure_ascii=False)
 
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    cur = conn.cursor()
-    cur.execute(
-        """
-        INSERT INTO wedding_data (site_id, data, updated_at)
-        VALUES ('main', %s::jsonb, NOW())
-        ON CONFLICT (site_id) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()
-        """,
-        (data_json,)
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
+    conn = None
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO wedding_data (site_id, data, updated_at)
+            VALUES ('main', %s::jsonb, NOW())
+            ON CONFLICT (site_id) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()
+            """,
+            (data_json,)
+        )
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'db_error', 'detail': str(e)[:200]})
+        }
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     return {
         'statusCode': 200,
-        'headers': {'Access-Control-Allow-Origin': '*'},
+        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
         'body': json.dumps({'ok': True})
     }

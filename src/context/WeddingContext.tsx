@@ -26,15 +26,28 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(GET_URL)
-      .then((r) => r.json())
-      .then((json) => {
-        if (json && !json.error) {
+    let cancelled = false;
+    const load = async (attempt = 0) => {
+      try {
+        const r = await fetch(GET_URL);
+        const json = await r.json();
+        if (!cancelled && json && !json.error) {
           setDataState(mergeWithDefaults(json));
         }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      } catch (err) {
+        if (attempt < 2 && !cancelled) {
+          setTimeout(() => load(attempt + 1), 500 * (attempt + 1));
+          return;
+        }
+        console.error("Failed to load wedding data", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const setData = (d: WeddingData) => {
@@ -42,18 +55,24 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
   };
 
   const saveData = async (d: WeddingData, adminPassword: string): Promise<void> => {
+    const prev = data;
     setDataState(d);
-    const res = await fetch(SAVE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Admin-Token': adminPassword,
-      },
-      body: JSON.stringify(d),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'save_failed');
+    try {
+      const res = await fetch(SAVE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': adminPassword,
+        },
+        body: JSON.stringify(d),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `save_failed_${res.status}`);
+      }
+    } catch (e) {
+      setDataState(prev);
+      throw e;
     }
   };
 
