@@ -1,4 +1,5 @@
 {
+  "presign-audio": "https://functions.poehali.dev/66da2b79-7e31-4e71-acfa-d2454958f969",
   "get-wedding": "https://functions.poehali.dev/cf831fbe-7593-4252-b588-6e67d1d9e3f5",
   "save-wedding": "https://functions.poehali.dev/a20d2510-dbb5-48dd-9faf-c45e0a14bc04",
   "upload-audio": "https://functions.poehali.dev/18daacfc-1a6d-4c48-a94b-c95011bcd933",

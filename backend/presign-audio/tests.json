@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {
+      "name": "Presign audio URL",
+      "method": "POST",
+      "path": "/",
+      "body": {"filename": "test.mp3", "contentType": "audio/mpeg"},
+      "expectedStatus": 200,
+      "bodyMatcher": "none"
+    }
+  ]
+}
