@@ -93,8 +93,8 @@ export default function AdminPanel() {
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 20 * 1024 * 1024) {
-      setAudioError("Файл слишком большой. Максимум 20 МБ.");
+    if (file.size > 4 * 1024 * 1024) {
+      setAudioError("Файл слишком большой. Максимум 4 МБ (сожмите mp3 до 96–128 kbps).");
       return;
     }
     setAudioUploading(true);
@@ -113,17 +113,23 @@ export default function AdminPanel() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ audio: base64, contentType: file.type, filename: file.name }),
         });
-        const json = await res.json();
         setAudioProgress(100);
-        if (json.url) {
-          const updated = { ...form, audioUrl: json.url, audioName: file.name };
-          setForm(updated);
-          setData(updated);
+        if (res.status === 413) {
+          setAudioError("Файл слишком большой для сервера. Сожмите mp3 (до ~3 МБ).");
+        } else if (!res.ok) {
+          setAudioError(`Ошибка сервера (${res.status}). Попробуйте ещё раз.`);
         } else {
-          setAudioError("Ошибка загрузки. Попробуйте ещё раз.");
+          const json = await res.json().catch(() => ({}));
+          if (json.url) {
+            const updated = { ...form, audioUrl: json.url, audioName: file.name };
+            setForm(updated);
+            setData(updated);
+          } else {
+            setAudioError(json.error || "Ошибка загрузки. Попробуйте ещё раз.");
+          }
         }
-      } catch {
-        setAudioError("Ошибка сети. Проверьте соединение.");
+      } catch (err) {
+        setAudioError("Ошибка сети. Возможно, файл слишком большой — сожмите mp3.");
       } finally {
         setAudioUploading(false);
         if (audioInputRef.current) audioInputRef.current.value = "";
