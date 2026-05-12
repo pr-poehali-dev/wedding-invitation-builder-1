@@ -14,6 +14,15 @@ export default function AdminPanel() {
   const navigate = useNavigate();
   const { data, saveData, setData, loading } = useWedding();
   const [tab, setTab] = useState<Tab>("general");
+
+  const persist = async (updated: WeddingData) => {
+    const token = localStorage.getItem("wedding_admin_token") || "";
+    try {
+      await saveData(updated, token);
+    } catch {
+      /* ошибки сохранения показываются в handleSave */
+    }
+  };
   const [form, setForm] = useState<WeddingData>({ ...data });
 
   useEffect(() => {
@@ -77,6 +86,7 @@ export default function AdminPanel() {
           const updated = { ...form, galleryPhotos: [...(form.galleryPhotos || []), json.url] };
           setForm(updated);
           setData(updated);
+          await persist(updated);
         } else {
           setPhotoError("Ошибка загрузки. Попробуйте ещё раз.");
         }
@@ -128,6 +138,7 @@ export default function AdminPanel() {
       const updated = { ...form, audioUrl: cdnUrl, audioName: file.name };
       setForm(updated);
       setData(updated);
+      await persist(updated);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
       if (msg === "presign_failed") setAudioError("Не удалось подготовить загрузку. Попробуйте ещё раз.");
@@ -139,16 +150,18 @@ export default function AdminPanel() {
     }
   };
 
-  const handleRemoveAudio = () => {
+  const handleRemoveAudio = async () => {
     const updated = { ...form, audioUrl: "", audioName: "" };
     setForm(updated);
     setData(updated);
+    await persist(updated);
   };
 
-  const handleDeletePhoto = (idx: number) => {
+  const handleDeletePhoto = async (idx: number) => {
     const updated = { ...form, galleryPhotos: form.galleryPhotos.filter((_, i) => i !== idx) };
     setForm(updated);
     setData(updated);
+    await persist(updated);
   };
 
   const inputCls = "w-full px-3 py-2.5 border border-[#E8D5BE] bg-white text-sm text-[#4A4035] font-montserrat focus:outline-none focus:border-[#B8976A] rounded-sm transition-colors";
