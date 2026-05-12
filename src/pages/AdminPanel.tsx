@@ -15,12 +15,14 @@ export default function AdminPanel() {
   const { data, saveData, setData, loading } = useWedding();
   const [tab, setTab] = useState<Tab>("general");
 
-  const persist = async (updated: WeddingData) => {
+  const persist = async (updated: WeddingData): Promise<boolean> => {
     const token = localStorage.getItem("wedding_admin_token") || "";
     try {
       await saveData(updated, token);
-    } catch {
-      /* ошибки сохранения показываются в handleSave */
+      return true;
+    } catch (err) {
+      console.error("persist failed", err);
+      return false;
     }
   };
   const [form, setForm] = useState<WeddingData>({ ...data });
@@ -83,10 +85,16 @@ export default function AdminPanel() {
         });
         const json = await res.json();
         if (json.url) {
-          const updated = { ...form, galleryPhotos: [...(form.galleryPhotos || []), json.url] };
-          setForm(updated);
+          let updated: WeddingData = form;
+          setForm((prev) => {
+            updated = { ...prev, galleryPhotos: [...(prev.galleryPhotos || []), json.url] };
+            return updated;
+          });
+          // ждём один цикл, чтобы updated точно был установлен
+          await new Promise((r) => setTimeout(r, 0));
           setData(updated);
-          await persist(updated);
+          const ok = await persist(updated);
+          if (!ok) setPhotoError("Фото загружено, но не сохранилось. Проверьте пароль входа.");
         } else {
           setPhotoError("Ошибка загрузки. Попробуйте ещё раз.");
         }
@@ -140,10 +148,11 @@ export default function AdminPanel() {
         return;
       }
       setAudioProgress(100);
-      const updated = { ...form, audioUrl: json.url, audioName: file.name };
+      const updated: WeddingData = { ...form, audioUrl: json.url, audioName: file.name };
       setForm(updated);
       setData(updated);
-      await persist(updated);
+      const ok = await persist(updated);
+      if (!ok) setAudioError("Музыка загружена, но не сохранилась. Проверьте пароль входа.");
     } catch {
       setAudioError("Ошибка сети. Возможно, файл слишком большой — сожмите mp3 до 3 МБ.");
     } finally {
