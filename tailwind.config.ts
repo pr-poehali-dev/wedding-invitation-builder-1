@@ -19,6 +19,15 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+				serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+				cormorant: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+				montserrat: ['Montserrat', 'system-ui', 'sans-serif'],
+				display: ['"Great Vibes"', '"Cormorant Garamond"', 'cursive'],
+				script: ['"Pinyon Script"', '"Great Vibes"', 'cursive'],
+				body: ['"Cormorant Infant"', '"Cormorant Garamond"', 'serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
