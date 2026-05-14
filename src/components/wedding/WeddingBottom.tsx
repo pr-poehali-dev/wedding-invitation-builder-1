@@ -195,7 +195,7 @@ export default function WeddingBottom({
             {[
               { icon: "Phone", title: data.groomName, sub: "Жених", val: data.contactGroom },
               { icon: "Phone", title: data.brideName, sub: "Невеста", val: data.contactBride },
-              { icon: "Users", title: "Ведущий", sub: "По вопросам программы", val: data.contactHost },
+              { icon: "Users", title: "Ведущая Алина", sub: "По вопросам программы", val: data.contactHost },
               { icon: "Mail", title: "Email", sub: "Общие вопросы", val: data.contactEmail },
             ].map((c, i) => (
               <Fade key={c.sub} delay={i * 80}>

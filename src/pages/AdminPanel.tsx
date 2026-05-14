@@ -6,6 +6,7 @@ import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 const AUTH_KEY = "wedding_admin_auth";
 const GET_URL = "https://functions.poehali.dev/cf831fbe-7593-4252-b588-6e67d1d9e3f5";
+const SAVE_URL = "https://functions.poehali.dev/a20d2510-dbb5-48dd-9faf-c45e0a14bc04";
 
 type Tab = "general" | "story" | "details" | "contacts" | "photos" | "music" | "registrations" | "texts" | "notes";
 
@@ -90,6 +91,24 @@ export default function AdminPanel() {
   useEffect(() => {
     if (tab === "registrations") loadGuests();
   }, [tab]);
+
+  const clearGuests = async () => {
+    if (!window.confirm("Удалить всех зарегистрированных гостей? Это действие нельзя отменить.")) return;
+    const token = localStorage.getItem("wedding_admin_token") || "";
+    try {
+      const res = await fetch(`${SAVE_URL}?mode=clear-guests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Token": token },
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+      setRegList([]);
+      setRegStats({ total: 0, attending_yes: 0, attending_no: 0, total_guests: 0 });
+    } catch {
+      setRegError("Не удалось очистить список. Попробуйте ещё раз.");
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem(AUTH_KEY);
@@ -620,7 +639,7 @@ export default function AdminPanel() {
                 <input className={inputCls} value={form.contactBride} onChange={(e) => set("contactBride", e.target.value)} />
               </div>
               <div>
-                <label className={labelCls}>Телефон ведущего</label>
+                <label className={labelCls}>Телефон ведущей (Алина)</label>
                 <input className={inputCls} value={form.contactHost} onChange={(e) => set("contactHost", e.target.value)} />
               </div>
               <div>
@@ -846,6 +865,13 @@ export default function AdminPanel() {
                     <Icon name={regLoading ? "Loader" : "RefreshCw"} size={12} className={regLoading ? "animate-spin" : ""} />
                     Обновить
                   </button>
+                  {regList.length > 0 && (
+                    <button onClick={clearGuests}
+                      className="text-xs font-montserrat text-[#C9897A] border border-[#C9897A]/40 px-3 py-1 rounded-full hover:border-[#C9897A] hover:bg-[#C9897A]/5 transition-colors flex items-center gap-1.5">
+                      <Icon name="Trash2" size={12} />
+                      Очистить
+                    </button>
+                  )}
                 </div>
               </div>
 

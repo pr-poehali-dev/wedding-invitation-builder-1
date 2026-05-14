@@ -81,16 +81,38 @@ def handler(event: dict, context) -> dict:
     except (json.JSONDecodeError, ValueError):
         return _err('invalid_json')
 
-    # Публичный маршрут: регистрация гостя
     params = event.get('queryStringParameters') or {}
-    if params.get('mode') == 'guest':
+    mode = params.get('mode', '')
+
+    # Публичный маршрут: регистрация гостя
+    if mode == 'guest':
         return save_guest(body)
 
-    # Защищённый маршрут: сохранение настроек сайта
+    # Защищённые маршруты (только admin)
     headers = event.get('headers') or {}
     token = headers.get('X-Admin-Token') or headers.get('x-admin-token', '')
     if token != ADMIN_PASSWORD:
         return _err('forbidden', 403)
+
+    # Очистка списка гостей
+    if mode == 'clear-guests':
+        conn = None
+        try:
+            conn = _db()
+            cur = conn.cursor()
+            cur.execute("DELETE FROM wedding_guests")
+            deleted = cur.rowcount
+            conn.commit()
+            cur.close()
+        except Exception as e:
+            return _err(f'db_error: {str(e)[:200]}', 500)
+        finally:
+            if conn:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+        return _ok({'ok': True, 'deleted': deleted})
 
     # Пинг для проверки пароля без записи
     if body.get('__ping'):
