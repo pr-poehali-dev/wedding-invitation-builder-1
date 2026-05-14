@@ -4,44 +4,102 @@ import psycopg2
 
 
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'wedding2026')
+CORS = {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}
+
+
+def _ok(body):
+    return {'statusCode': 200, 'headers': CORS, 'body': json.dumps(body, ensure_ascii=False)}
+
+
+def _err(msg, status=400):
+    return {'statusCode': status, 'headers': CORS, 'body': json.dumps({'error': msg})}
+
+
+def _db():
+    return psycopg2.connect(os.environ['DATABASE_URL'])
+
+
+def save_guest(body: dict) -> dict:
+    """Сохраняет регистрацию гостя в wedding_guests."""
+    name = (body.get('name') or '').strip()[:200]
+    attending = body.get('attending', '')
+    if not name or attending not in ('yes', 'no'):
+        return _err('name and attending are required')
+
+    email = (body.get('email') or '').strip()[:200]
+    phone = (body.get('phone') or '').strip()[:50]
+    guests_count = str(body.get('guests') or '1')[:5]
+    menu = (body.get('menu') or '').strip()[:200]
+    wishes = (body.get('wishes') or '').strip()[:1000]
+
+    conn = None
+    try:
+        conn = _db()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO wedding_guests (name, email, phone, guests_count, menu, wishes, attending)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """,
+            (name, email, phone, guests_count, menu, wishes, attending),
+        )
+        guest_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        return _err(f'db_error: {str(e)[:200]}', 500)
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    return _ok({'ok': True, 'id': guest_id})
 
 
 def handler(event: dict, context) -> dict:
-    """Сохраняет данные свадебного сайта в БД (только для администратора)."""
+    """Сохраняет данные сайта или регистрацию гостя.
+    POST ?mode=guest — публичная регистрация гостя (без токена).
+    POST (default) — сохранение настроек сайта (только admin).
+    """
     if event.get('httpMethod') == 'OPTIONS':
-        return {'statusCode': 200, 'headers': {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token', 'Access-Control-Max-Age': '86400'}, 'body': ''}
-
-    headers = event.get('headers') or {}
-    token = headers.get('X-Admin-Token') or headers.get('x-admin-token', '')
-    if token != ADMIN_PASSWORD:
         return {
-            'statusCode': 403,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'forbidden'})
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+                'Access-Control-Max-Age': '86400',
+            },
+            'body': '',
         }
 
     try:
         body = json.loads(event.get('body') or '{}')
     except (json.JSONDecodeError, ValueError):
-        return {
-            'statusCode': 400,
-            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'invalid_json'})
-        }
+        return _err('invalid_json')
+
+    # Публичный маршрут: регистрация гостя
+    params = event.get('queryStringParameters') or {}
+    if params.get('mode') == 'guest':
+        return save_guest(body)
+
+    # Защищённый маршрут: сохранение настроек сайта
+    headers = event.get('headers') or {}
+    token = headers.get('X-Admin-Token') or headers.get('x-admin-token', '')
+    if token != ADMIN_PASSWORD:
+        return _err('forbidden', 403)
 
     # Пинг для проверки пароля без записи
     if body.get('__ping'):
-        return {
-            'statusCode': 200,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'ok': True})
-        }
+        return _ok({'ok': True})
 
     data_json = json.dumps(body, ensure_ascii=False)
-
     conn = None
     try:
-        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        conn = _db()
         cur = conn.cursor()
         cur.execute(
             """
@@ -59,11 +117,7 @@ def handler(event: dict, context) -> dict:
                 conn.rollback()
             except Exception:
                 pass
-        return {
-            'statusCode': 500,
-            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': 'db_error', 'detail': str(e)[:200]})
-        }
+        return _err(f'db_error: {str(e)[:200]}', 500)
     finally:
         if conn:
             try:
@@ -71,8 +125,4 @@ def handler(event: dict, context) -> dict:
             except Exception:
                 pass
 
-    return {
-        'statusCode': 200,
-        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
-        'body': json.dumps({'ok': True})
-    }
+    return _ok({'ok': True})

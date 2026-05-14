@@ -7,7 +7,7 @@ interface WeddingMiddleProps {
   setRegDone: (v: boolean) => void;
 }
 
-const REG_KEY = "wedding_reg_list";
+const SAVE_URL = "https://functions.poehali.dev/a20d2510-dbb5-48dd-9faf-c45e0a14bc04";
 
 export default function WeddingMiddle({ regDone, setRegDone }: WeddingMiddleProps) {
   const { data } = useWedding();
@@ -19,17 +19,30 @@ export default function WeddingMiddle({ regDone, setRegDone }: WeddingMiddleProp
   const [menu, setMenu] = useState("");
   const [wishes, setWishes] = useState("");
   const [attending, setAttending] = useState<"yes" | "no" | "">("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !attending) return;
-    const list = JSON.parse(localStorage.getItem(REG_KEY) || "[]");
-    list.push({
-      name, email, phone, guests, menu, wishes, attending,
-      registeredAt: new Date().toISOString(),
-    });
-    localStorage.setItem(REG_KEY, JSON.stringify(list));
-    setRegDone(true);
+    if (!name || !attending || submitting) return;
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const res = await fetch(`${SAVE_URL}?mode=guest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, guests, menu, wishes, attending }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `server_error_${res.status}`);
+      }
+      setRegDone(true);
+    } catch {
+      setSubmitError("Не удалось отправить регистрацию. Проверьте соединение и попробуйте ещё раз.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const inputCls = "w-full px-4 py-3 border border-[#E8D5BE] bg-transparent text-sm text-[#4A4035] font-montserrat focus:outline-none focus:border-[#B8976A] rounded-sm transition-colors";
@@ -134,9 +147,13 @@ export default function WeddingMiddle({ regDone, setRegDone }: WeddingMiddleProp
                   </>
                 )}
 
-                <button type="submit"
-                  className="w-full py-3.5 bg-[#3D2B1F] text-[#FAF7F2] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#4A4035] transition-colors rounded-sm">
-                  Подтвердить регистрацию
+                {submitError && (
+                  <p className="text-xs text-red-500 font-montserrat text-center">{submitError}</p>
+                )}
+                <button type="submit" disabled={submitting}
+                  className="w-full py-3.5 bg-[#3D2B1F] text-[#FAF7F2] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#4A4035] transition-colors rounded-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {submitting && <span className="w-3.5 h-3.5 border border-[#FAF7F2] border-t-transparent rounded-full animate-spin" />}
+                  {submitting ? "Отправка..." : "Подтвердить регистрацию"}
                 </button>
                 <p className="text-xs text-[#9B8878] font-montserrat text-center">{data.rsvpDeadline}</p>
               </form>

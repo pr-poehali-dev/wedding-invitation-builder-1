@@ -5,10 +5,28 @@ import { useWedding, WeddingData } from "@/context/WeddingContext";
 import { TEMPLATES, FONTS } from "@/components/wedding/wedding-shared";
 
 const AUTH_KEY = "wedding_admin_auth";
+const GET_URL = "https://functions.poehali.dev/cf831fbe-7593-4252-b588-6e67d1d9e3f5";
 
 type Tab = "general" | "story" | "details" | "contacts" | "photos" | "music" | "registrations" | "texts" | "notes";
 
-const REG_KEY = "wedding_reg_list";
+interface Guest {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  guests: string;
+  menu: string;
+  wishes: string;
+  attending: "yes" | "no";
+  registeredAt: string;
+}
+
+interface GuestStats {
+  total: number;
+  attending_yes: number;
+  attending_no: number;
+  total_guests: number;
+}
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -39,15 +57,39 @@ export default function AdminPanel() {
   const [audioUploading, setAudioUploading] = useState(false);
   const [audioError, setAudioError] = useState("");
   const [audioProgress, setAudioProgress] = useState(0);
-  const [regList] = useState<Array<Record<string, string>>>(() => {
-    try { return JSON.parse(localStorage.getItem(REG_KEY) || "[]"); } catch { return []; }
-  });
+  const [regList, setRegList] = useState<Guest[]>([]);
+  const [regStats, setRegStats] = useState<GuestStats | null>(null);
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState("");
 
   useEffect(() => {
     if (localStorage.getItem(AUTH_KEY) !== "true") {
       navigate("/admin");
     }
   }, [navigate]);
+
+  const loadGuests = async () => {
+    setRegLoading(true);
+    setRegError("");
+    try {
+      const token = localStorage.getItem("wedding_admin_token") || "";
+      const res = await fetch(`${GET_URL}?mode=guests`, {
+        headers: { "X-Admin-Token": token },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || `error_${res.status}`);
+      setRegList(json.guests || []);
+      setRegStats(json.stats || null);
+    } catch {
+      setRegError("Не удалось загрузить список гостей. Попробуйте обновить.");
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (tab === "registrations") loadGuests();
+  }, [tab]);
 
   const logout = () => {
     localStorage.removeItem(AUTH_KEY);
@@ -784,21 +826,48 @@ export default function AdminPanel() {
           {/* REGISTRATIONS */}
           {tab === "registrations" && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Регистрации гостей</h2>
-                <span className="text-xs font-montserrat text-[#9B8878] border border-[#E8D5BE] px-3 py-1 rounded-full">
-                  {regList.length} чел.
-                </span>
+                <div className="flex items-center gap-3">
+                  {regStats && (
+                    <div className="flex gap-2 text-xs font-montserrat">
+                      <span className="border border-[#B8976A] text-[#B8976A] bg-[#B8976A]/5 px-2.5 py-1 rounded-full">
+                        Придут: {regStats.attending_yes} ({regStats.total_guests} чел.)
+                      </span>
+                      {regStats.attending_no > 0 && (
+                        <span className="border border-[#C9897A] text-[#C9897A] bg-[#C9897A]/5 px-2.5 py-1 rounded-full">
+                          Не придут: {regStats.attending_no}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <button onClick={loadGuests} disabled={regLoading}
+                    className="text-xs font-montserrat text-[#9B8878] border border-[#E8D5BE] px-3 py-1 rounded-full hover:border-[#B8976A] hover:text-[#B8976A] transition-colors disabled:opacity-50 flex items-center gap-1.5">
+                    <Icon name={regLoading ? "Loader" : "RefreshCw"} size={12} className={regLoading ? "animate-spin" : ""} />
+                    Обновить
+                  </button>
+                </div>
               </div>
 
-              {regList.length === 0 ? (
+              {regError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-montserrat px-4 py-3 rounded-sm">
+                  {regError}
+                </div>
+              )}
+
+              {regLoading && regList.length === 0 ? (
+                <div className="bg-white border border-[#E8D5BE] p-10 rounded-sm text-center">
+                  <div className="w-6 h-6 border-2 border-[#B8976A] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-sm text-[#9B8878] font-montserrat">Загрузка...</p>
+                </div>
+              ) : regList.length === 0 ? (
                 <div className="bg-white border border-[#E8D5BE] p-10 rounded-sm text-center">
                   <p className="text-sm text-[#9B8878] font-montserrat">Регистраций пока нет</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {regList.map((r, i) => (
-                    <div key={i} className="bg-white border border-[#E8D5BE] p-5 rounded-sm" style={{ boxShadow: "0 2px 20px rgba(61,43,31,0.04)" }}>
+                  {regList.map((r) => (
+                    <div key={r.id} className="bg-white border border-[#E8D5BE] p-5 rounded-sm" style={{ boxShadow: "0 2px 20px rgba(61,43,31,0.04)" }}>
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div>
                           <p className="font-cormorant text-lg text-[#3D2B1F]">{r.name}</p>
@@ -819,8 +888,13 @@ export default function AdminPanel() {
                         <div className="border-t border-[#E8D5BE] pt-3 flex flex-wrap gap-4 text-xs font-montserrat text-[#9B8878]">
                           {r.guests && <span>Гостей: <span className="text-[#4A4035]">{r.guests}</span></span>}
                           {r.menu && <span>Меню: <span className="text-[#4A4035]">{r.menu}</span></span>}
-                          {r.wishes && <span>Пожелания: <span className="text-[#4A4035]">{r.wishes}</span></span>}
+                          {r.wishes && <span className="max-w-xs">Пожелания: <span className="text-[#4A4035]">{r.wishes}</span></span>}
                         </div>
+                      )}
+                      {r.registeredAt && (
+                        <p className="text-[10px] text-[#9B8878]/60 font-montserrat mt-2">
+                          {new Date(r.registeredAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </p>
                       )}
                     </div>
                   ))}

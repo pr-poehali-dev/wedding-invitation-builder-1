@@ -1,10 +1,26 @@
 {
   "tests": [
     {
-      "name": "Save wedding forbidden without token",
+      "name": "Save wedding — forbidden without token",
       "method": "POST",
       "path": "/",
       "expectedStatus": 403
+    },
+    {
+      "name": "Save guest — success",
+      "method": "POST",
+      "path": "/?mode=guest",
+      "body": {"name": "Тест Тестов", "attending": "yes", "guests": "2", "menu": "Рыба"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Save guest — missing name",
+      "method": "POST",
+      "path": "/?mode=guest",
+      "body": {"attending": "yes"},
+      "expectedStatus": 400
     }
   ]
 }
