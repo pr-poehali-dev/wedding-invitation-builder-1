@@ -630,21 +630,83 @@ export default function AdminPanel() {
           {tab === "contacts" && (
             <div className="space-y-5">
               <h2 className="font-cormorant text-2xl text-[#3D2B1F]">Контакты</h2>
-              <div>
-                <label className={labelCls}>Телефон жениха</label>
-                <input className={inputCls} value={form.contactGroom} onChange={(e) => set("contactGroom", e.target.value)} />
+
+              <div className="pb-4 border-b border-[#E8D5BE]/60">
+                <p className="text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase mb-3">Заголовок раздела</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Заголовок</label>
+                    <input className={inputCls} value={form.contactsTitle} onChange={(e) => set("contactsTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Подзаголовок</label>
+                    <input className={inputCls} value={form.contactsSub} onChange={(e) => set("contactsSub", e.target.value)} />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className={labelCls}>Телефон невесты</label>
-                <input className={inputCls} value={form.contactBride} onChange={(e) => set("contactBride", e.target.value)} />
+
+              <div className="pb-4 border-b border-[#E8D5BE]/60">
+                <p className="text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase mb-3">Жених</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Подпись (роль)</label>
+                    <input className={inputCls} value={form.contactGroomLabel} onChange={(e) => set("contactGroomLabel", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Телефон</label>
+                    <input className={inputCls} value={form.contactGroom} onChange={(e) => set("contactGroom", e.target.value)} />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className={labelCls}>Телефон ведущей (Алина)</label>
-                <input className={inputCls} value={form.contactHost} onChange={(e) => set("contactHost", e.target.value)} />
+
+              <div className="pb-4 border-b border-[#E8D5BE]/60">
+                <p className="text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase mb-3">Невеста</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Подпись (роль)</label>
+                    <input className={inputCls} value={form.contactBrideLabel} onChange={(e) => set("contactBrideLabel", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Телефон</label>
+                    <input className={inputCls} value={form.contactBride} onChange={(e) => set("contactBride", e.target.value)} />
+                  </div>
+                </div>
               </div>
+
+              <div className="pb-4 border-b border-[#E8D5BE]/60">
+                <p className="text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase mb-3">Ведущая</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Имя / заголовок</label>
+                    <input className={inputCls} value={form.contactHostTitle} onChange={(e) => set("contactHostTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Подпись</label>
+                    <input className={inputCls} value={form.contactHostLabel} onChange={(e) => set("contactHostLabel", e.target.value)} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={labelCls}>Телефон</label>
+                    <input className={inputCls} value={form.contactHost} onChange={(e) => set("contactHost", e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <label className={labelCls}>Email</label>
-                <input type="email" className={inputCls} value={form.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} />
+                <p className="text-[10px] tracking-[0.25em] text-[#B8976A] font-montserrat uppercase mb-3">Email</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Заголовок</label>
+                    <input className={inputCls} value={form.contactEmailTitle} onChange={(e) => set("contactEmailTitle", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Подпись</label>
+                    <input className={inputCls} value={form.contactEmailLabel} onChange={(e) => set("contactEmailLabel", e.target.value)} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={labelCls}>Email</label>
+                    <input type="email" className={inputCls} value={form.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} />
+                  </div>
+                </div>
               </div>
             </div>
           )}

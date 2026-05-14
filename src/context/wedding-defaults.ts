@@ -15,6 +15,14 @@ export interface WeddingData {
   contactBride: string;
   contactHost: string;
   contactEmail: string;
+  contactsTitle: string;
+  contactsSub: string;
+  contactGroomLabel: string;
+  contactBrideLabel: string;
+  contactHostTitle: string;
+  contactHostLabel: string;
+  contactEmailTitle: string;
+  contactEmailLabel: string;
   timelineTitles: string[];
   timelineTexts: string[];
   timelineYears: string[];
@@ -63,6 +71,14 @@ export const WEDDING_DEFAULTS: WeddingData = {
   contactBride: "+7 (999) 765-43-21",
   contactHost: "+7 (916) 555-00-11",
   contactEmail: "wedding@example.com",
+  contactsTitle: "Контакты",
+  contactsSub: "Связаться с нами",
+  contactGroomLabel: "Жених",
+  contactBrideLabel: "Невеста",
+  contactHostTitle: "Ведущая Алина",
+  contactHostLabel: "По вопросам программы",
+  contactEmailTitle: "Email",
+  contactEmailLabel: "Общие вопросы",
   timelineTitles: ["Первая встреча", "Первое путешествие", "Предложение", "Свадьба"],
   timelineTexts: [
     "Случайное знакомство на выставке современного искусства изменило всё.",

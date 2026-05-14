@@ -190,13 +190,13 @@ export default function WeddingBottom({
       {/* CONTACTS */}
       <section id="contacts" className="py-24 px-6 bg-[#F5F0E8]">
         <div className="max-w-3xl mx-auto">
-          <Fade><SectionTitle title="Контакты" sub="Связаться с нами" /></Fade>
+          <Fade><SectionTitle title={data.contactsTitle} sub={data.contactsSub} /></Fade>
           <div className="grid md:grid-cols-2 gap-6">
             {[
-              { icon: "Phone", title: data.groomName, sub: "Жених", val: data.contactGroom },
-              { icon: "Phone", title: data.brideName, sub: "Невеста", val: data.contactBride },
-              { icon: "Users", title: "Ведущая Алина", sub: "По вопросам программы", val: data.contactHost },
-              { icon: "Mail", title: "Email", sub: "Общие вопросы", val: data.contactEmail },
+              { icon: "Phone", title: data.groomName, sub: data.contactGroomLabel, val: data.contactGroom },
+              { icon: "Phone", title: data.brideName, sub: data.contactBrideLabel, val: data.contactBride },
+              { icon: "Users", title: data.contactHostTitle, sub: data.contactHostLabel, val: data.contactHost },
+              { icon: "Mail", title: data.contactEmailTitle, sub: data.contactEmailLabel, val: data.contactEmail },
             ].map((c, i) => (
               <Fade key={c.sub} delay={i * 80}>
                 <div className="bg-white border border-[#E8D5BE] p-6 rounded-sm flex items-start gap-4" style={{ boxShadow: "0 4px 30px rgba(61,43,31,0.05)" }}>
