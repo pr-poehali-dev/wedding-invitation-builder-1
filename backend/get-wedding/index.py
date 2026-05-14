@@ -34,8 +34,7 @@ def handle_guests(headers: dict) -> dict:
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, name, email, phone, guests_count, menu, wishes, attending,
-                   registered_at AT TIME ZONE 'UTC' AS registered_at
+            SELECT id, name, email, phone, guests_count, menu, wishes, attending, registered_at
             FROM wedding_guests
             ORDER BY registered_at DESC
             """
@@ -55,19 +54,25 @@ def handle_guests(headers: dict) -> dict:
         {
             'id': r[0],
             'name': r[1],
-            'email': r[2],
-            'phone': r[3],
-            'guests': r[4],
-            'menu': r[5],
-            'wishes': r[6],
+            'email': r[2] or '',
+            'phone': r[3] or '',
+            'guests': r[4] or '1',
+            'menu': r[5] or '',
+            'wishes': r[6] or '',
             'attending': r[7],
             'registeredAt': r[8].isoformat() if r[8] else None,
         }
         for r in rows
     ]
 
+    def safe_int(v):
+        try:
+            return max(1, int(v))
+        except (ValueError, TypeError):
+            return 1
+
     yes_count = sum(1 for g in guests if g['attending'] == 'yes')
-    total_guests = sum(int(g['guests'] or 1) for g in guests if g['attending'] == 'yes')
+    total_guests = sum(safe_int(g['guests']) for g in guests if g['attending'] == 'yes')
 
     return _ok({
         'guests': guests,

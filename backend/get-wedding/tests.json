@@ -5,6 +5,12 @@
       "method": "GET",
       "path": "/",
       "expectedStatus": 200
+    },
+    {
+      "name": "Get guests — forbidden without token",
+      "method": "GET",
+      "path": "/?mode=guests",
+      "expectedStatus": 403
     }
   ]
 }

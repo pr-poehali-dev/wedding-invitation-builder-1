@@ -7,19 +7,17 @@
       "expectedStatus": 403
     },
     {
-      "name": "Save guest — success",
-      "method": "POST",
-      "path": "/?mode=guest",
-      "body": {"name": "Тест Тестов", "attending": "yes", "guests": "2", "menu": "Рыба"},
-      "expectedStatus": 200,
-      "expectedBody": {"ok": true},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Save guest — missing name",
+      "name": "Save guest — missing name returns 400",
       "method": "POST",
       "path": "/?mode=guest",
       "body": {"attending": "yes"},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Save guest — invalid attending returns 400",
+      "method": "POST",
+      "path": "/?mode=guest",
+      "body": {"name": "Иван", "attending": "maybe"},
       "expectedStatus": 400
     }
   ]

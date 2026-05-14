@@ -36,9 +36,10 @@ def save_guest(body: dict) -> dict:
     try:
         conn = _db()
         cur = conn.cursor()
+        schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
         cur.execute(
-            """
-            INSERT INTO wedding_guests (name, email, phone, guests_count, menu, wishes, attending)
+            f"""
+            INSERT INTO "{schema}".wedding_guests (name, email, phone, guests_count, menu, wishes, attending)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
