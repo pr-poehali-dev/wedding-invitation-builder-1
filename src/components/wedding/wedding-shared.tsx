@@ -80,23 +80,28 @@ export function SectionTitle({ title, sub }: { title: string; sub: string }) {
   return (
     <div className="text-center mb-14">
       <p className="text-[10px] tracking-[0.5em] text-[#B8976A] font-montserrat uppercase mb-3">{sub}</p>
-      <h2 className="font-cormorant text-4xl md:text-5xl font-light text-[#3D2B1F] mb-5 leading-tight">{title}</h2>
-      <div className="w-14 h-px bg-gradient-to-r from-transparent via-[#B8976A] to-transparent mx-auto" />
+      <h2 className="font-display text-5xl md:text-6xl text-[#3D2B1F] mb-5 leading-tight">{title}</h2>
+      <div className="flex items-center justify-center gap-3">
+        <div className="w-12 h-px bg-gradient-to-r from-transparent to-[#B8976A]/70" />
+        <span className="text-[#B8976A] text-xs">✦</span>
+        <div className="w-12 h-px bg-gradient-to-l from-transparent to-[#B8976A]/70" />
+      </div>
     </div>
   );
 }
 
 export function Petals() {
-  const items = ["🌸", "✿", "🌺", "❀", "🌷", "✾", "🌸", "✿"];
+  const items = ["✿", "❀", "✾", "✿", "❀"];
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden z-0" aria-hidden>
       {items.map((p, i) => (
         <span
           key={i}
-          className="fixed text-sm opacity-50"
+          className="fixed text-[#E8C4B0]/40 text-sm"
           style={{
-            left: `${8 + i * 11}%`,
-            animation: `petal-fall ${5 + (i % 3)}s ease-in ${i * 0.9}s infinite`,
+            left: `${12 + i * 18}%`,
+            willChange: "transform, opacity",
+            animation: `petal-fall ${7 + (i % 2)}s ease-in ${i * 1.4}s infinite`,
           }}
         >{p}</span>
       ))}

@@ -28,8 +28,8 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FAF7F2]/90 backdrop-blur-sm border-b border-[#E8C4B0]/30">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-          <button onClick={() => go("hero")} className="font-cormorant text-xl tracking-widest text-[#3D2B1F] font-light">
-            {data.groomName?.[0] ?? "А"} & {data.brideName?.[0] ?? "М"}
+          <button onClick={() => go("hero")} className="font-script text-3xl text-[#B8976A] leading-none">
+            {data.groomName?.[0] ?? "А"}&amp;{data.brideName?.[0] ?? "М"}
           </button>
           <div className="flex items-center gap-3">
             <button
@@ -75,45 +75,69 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
       {/* HERO */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={tmpl.heroImage} alt="" className="w-full h-full object-cover" />
+          <img
+            src={tmpl.heroImage}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
           <div className={`absolute inset-0 ${tmpl.overlayClass}`} />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
         </div>
+
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
-          <p className="text-[10px] tracking-[0.7em] text-white/65 font-montserrat uppercase mb-6 animate-fade-in" style={{ animationDelay: "0.3s", animationFillMode: "both" }}>
+          <div className="flex items-center justify-center gap-3 mb-5 animate-fade-in" style={{ animationDelay: "0.2s", animationFillMode: "both" }}>
+            <span className="w-10 h-px bg-[#E8C4B0]/60" />
+            <Icon name="Heart" size={12} className="text-[#E8C4B0] fill-[#E8C4B0]/60" />
+            <span className="w-10 h-px bg-[#E8C4B0]/60" />
+          </div>
+
+          <p className="text-[10px] tracking-[0.7em] text-white/75 font-montserrat uppercase mb-7 animate-fade-in" style={{ animationDelay: "0.35s", animationFillMode: "both" }}>
             {data.heroTagline}
           </p>
-          <h1 className="font-cormorant text-6xl md:text-8xl font-light text-white leading-none mb-2 animate-fade-up" style={{ animationDelay: "0.6s", animationFillMode: "both" }}>
+
+          <h1 className="font-display text-7xl md:text-[9rem] text-white leading-[0.95] mb-1 animate-fade-up drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)]" style={{ animationDelay: "0.55s", animationFillMode: "both" }}>
             {data.groomName}
           </h1>
-          <p className="font-cormorant text-4xl md:text-5xl italic text-[#E8C4B0] mb-2 animate-fade-up" style={{ animationDelay: "0.8s", animationFillMode: "both" }}>
+          <p className="font-script text-5xl md:text-7xl text-[#E8C4B0] -my-2 md:-my-4 animate-fade-up drop-shadow-[0_2px_14px_rgba(0,0,0,0.3)]" style={{ animationDelay: "0.75s", animationFillMode: "both" }}>
             &amp;
           </p>
-          <h1 className="font-cormorant text-6xl md:text-8xl font-light text-white leading-none animate-fade-up" style={{ animationDelay: "1s", animationFillMode: "both" }}>
+          <h1 className="font-display text-7xl md:text-[9rem] text-white leading-[0.95] animate-fade-up drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)]" style={{ animationDelay: "0.95s", animationFillMode: "both" }}>
             {data.brideName}
           </h1>
-          <div className="animate-fade-up" style={{ animationDelay: "1.2s", animationFillMode: "both" }}>
-            <div className="w-48 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto my-7" />
-            <p className="font-cormorant text-xl text-white/80 italic tracking-wider">{weddingDateLabel}</p>
-            <p className="text-[10px] tracking-[0.35em] text-white/55 font-montserrat uppercase mt-1">
+
+          <div className="animate-fade-up" style={{ animationDelay: "1.15s", animationFillMode: "both" }}>
+            <div className="flex items-center justify-center gap-4 my-8">
+              <div className="w-20 h-px bg-gradient-to-r from-transparent to-white/50" />
+              <Icon name="Flower2" size={14} className="text-[#E8C4B0]" />
+              <div className="w-20 h-px bg-gradient-to-l from-transparent to-white/50" />
+            </div>
+            <p className="font-cormorant text-2xl text-white/90 italic tracking-wider">{weddingDateLabel}</p>
+            <p className="text-[10px] tracking-[0.35em] text-white/60 font-montserrat uppercase mt-2">
               {data.venueName} · {data.venueAddress}
             </p>
           </div>
+
           <div className="mt-10 grid grid-cols-4 gap-3 max-w-xs mx-auto animate-fade-up" style={{ animationDelay: "1.4s", animationFillMode: "both" }}>
             {[{ v: cd.d, l: "дней" }, { v: cd.h, l: "часов" }, { v: cd.m, l: "минут" }, { v: cd.s, l: "секунд" }].map((c) => (
-              <div key={c.l} className="text-center">
+              <div key={c.l} className="text-center backdrop-blur-[2px]">
                 <div className="font-cormorant text-3xl font-light text-white tabular-nums">{String(c.v).padStart(2, "0")}</div>
-                <div className="text-[9px] tracking-widest text-white/45 font-montserrat uppercase">{c.l}</div>
+                <div className="text-[9px] tracking-widest text-white/55 font-montserrat uppercase mt-1">{c.l}</div>
               </div>
             ))}
           </div>
+
           <div className="animate-fade-up" style={{ animationDelay: "1.6s", animationFillMode: "both" }}>
             <button onClick={() => go("rsvp")}
-              className="mt-10 px-9 py-3.5 border border-white/45 text-white text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-white hover:text-[#3D2B1F] transition-all duration-300">
+              className="mt-10 px-10 py-3.5 border border-white/50 text-white text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-white hover:text-[#3D2B1F] hover:border-white transition-all duration-300 rounded-sm">
               {data.heroBtn}
             </button>
           </div>
         </div>
-        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 text-white/35 animate-bounce">
+
+        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 text-white/40 animate-bounce">
           <Icon name="ChevronDown" size={20} />
         </div>
       </section>
