@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { TEMPLATES, NAV_ITEMS, Fade, SectionTitle } from "./wedding-shared";
+import { TEMPLATES, NAV_ITEMS, Fade, SectionTitle, buildCalendarIcs, downloadIcs } from "./wedding-shared";
 import { useWedding } from "@/context/WeddingContext";
 
 const AUTH_KEY = "wedding_admin_auth";
@@ -19,9 +19,29 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
   const isAdmin = localStorage.getItem(AUTH_KEY) === "true";
   const tmpl = TEMPLATES.find((t) => t.id === data.tmplId) ?? TEMPLATES[0];
 
-  const weddingDateLabel = new Date(data.weddingDate).toLocaleDateString("ru-RU", {
+  const weddingDateObj = new Date(data.weddingDate);
+  const weddingDateLabel = weddingDateObj.toLocaleDateString("ru-RU", {
     day: "numeric", month: "long", year: "numeric",
   });
+  const dayNum = isNaN(weddingDateObj.getTime()) ? "" : String(weddingDateObj.getDate()).padStart(2, "0");
+  const monthLabel = isNaN(weddingDateObj.getTime())
+    ? ""
+    : weddingDateObj.toLocaleDateString("ru-RU", { month: "long" });
+  const yearNum = isNaN(weddingDateObj.getTime()) ? "" : weddingDateObj.getFullYear();
+
+  const addToCalendar = () => {
+    if (isNaN(weddingDateObj.getTime())) return;
+    const ics = buildCalendarIcs({
+      title: `Свадьба ${data.groomName} & ${data.brideName}`,
+      description: data.heroTagline,
+      location: `${data.venueName}, ${data.venueAddress}`,
+      start: weddingDateObj,
+      durationHours: 8,
+    });
+    downloadIcs("wedding.ics", ics);
+  };
+
+  const initials = `${data.groomName?.[0] ?? "А"}${data.brideName?.[0] ?? "М"}`;
 
   return (
     <>
@@ -78,37 +98,58 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
           <img
             src={tmpl.heroImage}
             alt=""
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover animate-ken-burns"
             loading="eager"
             fetchPriority="high"
             decoding="async"
           />
           <div className={`absolute inset-0 ${tmpl.overlayClass}`} />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/50" />
+          {/* Vignette */}
+          <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 200px 30px rgba(0,0,0,0.55)" }} />
         </div>
 
+        {/* Golden corner ornaments */}
+        <div className="absolute top-20 left-5 md:top-24 md:left-10 w-12 h-12 md:w-16 md:h-16 border-t border-l border-[#E8C4B0]/60 z-10 animate-fade-in" style={{ animationDelay: "0.6s", animationFillMode: "both" }} />
+        <div className="absolute top-20 right-5 md:top-24 md:right-10 w-12 h-12 md:w-16 md:h-16 border-t border-r border-[#E8C4B0]/60 z-10 animate-fade-in" style={{ animationDelay: "0.6s", animationFillMode: "both" }} />
+        <div className="absolute bottom-20 left-5 md:bottom-16 md:left-10 w-12 h-12 md:w-16 md:h-16 border-b border-l border-[#E8C4B0]/60 z-10 animate-fade-in" style={{ animationDelay: "0.6s", animationFillMode: "both" }} />
+        <div className="absolute bottom-20 right-5 md:bottom-16 md:right-10 w-12 h-12 md:w-16 md:h-16 border-b border-r border-[#E8C4B0]/60 z-10 animate-fade-in" style={{ animationDelay: "0.6s", animationFillMode: "both" }} />
+
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
-          <div className="flex items-center justify-center gap-3 mb-5 animate-fade-in" style={{ animationDelay: "0.2s", animationFillMode: "both" }}>
+          {/* Monogram */}
+          <div className="flex justify-center mb-6 animate-fade-up" style={{ animationDelay: "0.15s", animationFillMode: "both" }}>
+            <div className="relative w-20 h-20 md:w-24 md:h-24 flex items-center justify-center">
+              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-[#E8C4B0]/70 animate-spin-slow" fill="none" stroke="currentColor" strokeWidth="0.4">
+                <circle cx="50" cy="50" r="48" strokeDasharray="2 4" />
+                <circle cx="50" cy="50" r="42" />
+              </svg>
+              <span className="font-script text-3xl md:text-4xl text-[#E8C4B0] leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+                {initials}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 mb-5 animate-fade-in" style={{ animationDelay: "0.3s", animationFillMode: "both" }}>
             <span className="w-10 h-px bg-[#E8C4B0]/60" />
             <Icon name="Heart" size={12} className="text-[#E8C4B0] fill-[#E8C4B0]/60" />
             <span className="w-10 h-px bg-[#E8C4B0]/60" />
           </div>
 
-          <p className="text-[10px] tracking-[0.7em] text-white/75 font-montserrat uppercase mb-7 animate-fade-in" style={{ animationDelay: "0.35s", animationFillMode: "both" }}>
+          <p className="text-[10px] tracking-[0.7em] text-white/75 font-montserrat uppercase mb-7 animate-fade-in" style={{ animationDelay: "0.45s", animationFillMode: "both" }}>
             {data.heroTagline}
           </p>
 
-          <h1 className="font-display text-7xl md:text-[9rem] text-white leading-[0.95] mb-1 animate-fade-up drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)]" style={{ animationDelay: "0.55s", animationFillMode: "both" }}>
+          <h1 className="font-display text-7xl md:text-[9rem] text-white leading-[0.95] mb-1 animate-fade-up drop-shadow-[0_2px_22px_rgba(0,0,0,0.45)]" style={{ animationDelay: "0.6s", animationFillMode: "both" }}>
             {data.groomName}
           </h1>
-          <p className="font-script text-5xl md:text-7xl text-[#E8C4B0] -my-2 md:-my-4 animate-fade-up drop-shadow-[0_2px_14px_rgba(0,0,0,0.3)]" style={{ animationDelay: "0.75s", animationFillMode: "both" }}>
+          <p className="font-script text-5xl md:text-7xl text-[#E8C4B0] -my-2 md:-my-4 animate-fade-up drop-shadow-[0_2px_14px_rgba(0,0,0,0.4)]" style={{ animationDelay: "0.8s", animationFillMode: "both" }}>
             &amp;
           </p>
-          <h1 className="font-display text-7xl md:text-[9rem] text-white leading-[0.95] animate-fade-up drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)]" style={{ animationDelay: "0.95s", animationFillMode: "both" }}>
+          <h1 className="font-display text-7xl md:text-[9rem] text-white leading-[0.95] animate-fade-up drop-shadow-[0_2px_22px_rgba(0,0,0,0.45)]" style={{ animationDelay: "1s", animationFillMode: "both" }}>
             {data.brideName}
           </h1>
 
-          <div className="animate-fade-up" style={{ animationDelay: "1.15s", animationFillMode: "both" }}>
+          <div className="animate-fade-up" style={{ animationDelay: "1.2s", animationFillMode: "both" }}>
             <div className="flex items-center justify-center gap-4 my-8">
               <div className="w-20 h-px bg-gradient-to-r from-transparent to-white/50" />
               <Icon name="Flower2" size={14} className="text-[#E8C4B0]" />
@@ -122,24 +163,82 @@ export default function WeddingTop({ navOpen, setNavOpen, activeNav, cd, go }: W
 
           <div className="mt-10 grid grid-cols-4 gap-3 max-w-xs mx-auto animate-fade-up" style={{ animationDelay: "1.4s", animationFillMode: "both" }}>
             {[{ v: cd.d, l: "дней" }, { v: cd.h, l: "часов" }, { v: cd.m, l: "минут" }, { v: cd.s, l: "секунд" }].map((c) => (
-              <div key={c.l} className="text-center backdrop-blur-[2px]">
+              <div key={c.l} className="text-center">
                 <div className="font-cormorant text-3xl font-light text-white tabular-nums">{String(c.v).padStart(2, "0")}</div>
                 <div className="text-[9px] tracking-widest text-white/55 font-montserrat uppercase mt-1">{c.l}</div>
               </div>
             ))}
           </div>
 
-          <div className="animate-fade-up" style={{ animationDelay: "1.6s", animationFillMode: "both" }}>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 animate-fade-up" style={{ animationDelay: "1.6s", animationFillMode: "both" }}>
             <button onClick={() => go("rsvp")}
-              className="mt-10 px-10 py-3.5 border border-white/50 text-white text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-white hover:text-[#3D2B1F] hover:border-white transition-all duration-300 rounded-sm">
+              className="px-9 py-3.5 bg-[#E8C4B0] text-[#3D2B1F] text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-white transition-all duration-300 rounded-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5">
               {data.heroBtn}
+            </button>
+            <button onClick={addToCalendar}
+              className="px-7 py-3.5 border border-white/60 text-white text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-white hover:text-[#3D2B1F] transition-all duration-300 rounded-sm flex items-center gap-2">
+              <Icon name="CalendarPlus" size={13} />
+              В календарь
             </button>
           </div>
         </div>
 
-        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 text-white/40 animate-bounce">
-          <Icon name="ChevronDown" size={20} />
+        <div className="absolute bottom-7 left-1/2 -translate-x-1/2 text-white/50 animate-bounce z-10">
+          <Icon name="ChevronDown" size={22} />
         </div>
+      </section>
+
+      {/* SAVE THE DATE */}
+      <section className="relative py-24 px-6 bg-[#FAF7F2] overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(circle at 30% 50%, #B8976A 0%, transparent 45%), radial-gradient(circle at 70% 50%, #C9897A 0%, transparent 45%)" }} />
+        <Fade>
+          <div className="relative max-w-3xl mx-auto">
+            <div className="relative bg-white border border-[#E8D5BE] px-8 py-14 md:px-14 md:py-16 text-center" style={{ boxShadow: "0 10px 60px rgba(184,151,106,0.15)" }}>
+              {/* corner ornaments */}
+              <div className="absolute top-3 left-3 w-8 h-8 border-t border-l border-[#B8976A]/60" />
+              <div className="absolute top-3 right-3 w-8 h-8 border-t border-r border-[#B8976A]/60" />
+              <div className="absolute bottom-3 left-3 w-8 h-8 border-b border-l border-[#B8976A]/60" />
+              <div className="absolute bottom-3 right-3 w-8 h-8 border-b border-r border-[#B8976A]/60" />
+
+              <p className="text-[10px] tracking-[0.5em] text-[#B8976A] font-montserrat uppercase mb-2">Save the Date</p>
+              <p className="font-script text-3xl md:text-4xl text-[#B8976A] mb-6">сохраните дату</p>
+
+              <div className="flex items-center justify-center gap-6 md:gap-10 my-7">
+                <div className="flex-1 text-right">
+                  <p className="text-xs tracking-[0.3em] text-[#9B8878] font-montserrat uppercase">
+                    {new Date(data.weddingDate).toLocaleDateString("ru-RU", { weekday: "long" })}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center">
+                  <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat uppercase">{monthLabel}</p>
+                  <div className="font-display text-7xl md:text-8xl text-[#3D2B1F] leading-none my-1">{dayNum}</div>
+                  <p className="text-[10px] tracking-[0.3em] text-[#B8976A] font-montserrat">{yearNum}</p>
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-xs tracking-[0.3em] text-[#9B8878] font-montserrat uppercase">
+                    {data.weddingTime}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="w-12 h-px bg-gradient-to-r from-transparent to-[#B8976A]/60" />
+                <Icon name="Heart" size={11} className="text-[#B8976A] fill-[#B8976A]/30" />
+                <div className="w-12 h-px bg-gradient-to-l from-transparent to-[#B8976A]/60" />
+              </div>
+
+              <p className="font-cormorant italic text-lg text-[#3D2B1F]/80 max-w-md mx-auto">
+                {data.venueName}, {data.venueAddress}
+              </p>
+
+              <button onClick={addToCalendar}
+                className="mt-8 inline-flex items-center gap-2 px-7 py-3 bg-[#3D2B1F] text-white text-[10px] tracking-[0.35em] font-montserrat uppercase hover:bg-[#B8976A] transition-colors rounded-sm">
+                <Icon name="CalendarPlus" size={13} />
+                Добавить в календарь
+              </button>
+            </div>
+          </div>
+        </Fade>
       </section>
 
       {/* QUOTE */}

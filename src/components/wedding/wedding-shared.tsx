@@ -1,5 +1,40 @@
 import { useState, useEffect, useRef } from "react";
 
+export function buildCalendarIcs(opts: { title: string; description?: string; location?: string; start: Date; durationHours?: number }) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (d: Date) =>
+    `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
+  const end = new Date(opts.start.getTime() + (opts.durationHours ?? 8) * 3600000);
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Wedding//RU",
+    "BEGIN:VEVENT",
+    `UID:${Date.now()}@wedding`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(opts.start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${opts.title}`,
+    opts.description ? `DESCRIPTION:${opts.description.replace(/\n/g, "\\n")}` : "",
+    opts.location ? `LOCATION:${opts.location}` : "",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].filter(Boolean).join("\r\n");
+  return ics;
+}
+
+export function downloadIcs(filename: string, ics: string) {
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export const HERO_IMAGE =
   "https://cdn.poehali.dev/projects/bbfcdec2-563b-424a-b59e-2b4a8785b859/files/3d50b3d3-f5bd-4172-b326-544619e05ab5.jpg";
 
